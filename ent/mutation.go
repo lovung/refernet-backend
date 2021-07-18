@@ -10,6 +10,7 @@ import (
 	"refernet/ent/predicate"
 	"refernet/ent/skill"
 	"refernet/ent/user"
+	"refernet/ent/workexperience"
 	"sync"
 	"time"
 
@@ -25,10 +26,11 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCompany = "Company"
-	TypeJob     = "Job"
-	TypeSkill   = "Skill"
-	TypeUser    = "User"
+	TypeCompany        = "Company"
+	TypeJob            = "Job"
+	TypeSkill          = "Skill"
+	TypeUser           = "User"
+	TypeWorkExperience = "WorkExperience"
 )
 
 // CompanyMutation represents an operation that mutates the Company nodes in the graph.
@@ -48,6 +50,9 @@ type CompanyMutation struct {
 	founded_at    *int
 	addfounded_at *int
 	clearedFields map[string]struct{}
+	staffs        map[int]struct{}
+	removedstaffs map[int]struct{}
+	clearedstaffs bool
 	done          bool
 	oldValue      func(context.Context) (*Company, error)
 	predicates    []predicate.Company
@@ -476,6 +481,59 @@ func (m *CompanyMutation) ResetFoundedAt() {
 	m.addfounded_at = nil
 }
 
+// AddStaffIDs adds the "staffs" edge to the WorkExperience entity by ids.
+func (m *CompanyMutation) AddStaffIDs(ids ...int) {
+	if m.staffs == nil {
+		m.staffs = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.staffs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStaffs clears the "staffs" edge to the WorkExperience entity.
+func (m *CompanyMutation) ClearStaffs() {
+	m.clearedstaffs = true
+}
+
+// StaffsCleared reports if the "staffs" edge to the WorkExperience entity was cleared.
+func (m *CompanyMutation) StaffsCleared() bool {
+	return m.clearedstaffs
+}
+
+// RemoveStaffIDs removes the "staffs" edge to the WorkExperience entity by IDs.
+func (m *CompanyMutation) RemoveStaffIDs(ids ...int) {
+	if m.removedstaffs == nil {
+		m.removedstaffs = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedstaffs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStaffs returns the removed IDs of the "staffs" edge to the WorkExperience entity.
+func (m *CompanyMutation) RemovedStaffsIDs() (ids []int) {
+	for id := range m.removedstaffs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StaffsIDs returns the "staffs" edge IDs in the mutation.
+func (m *CompanyMutation) StaffsIDs() (ids []int) {
+	for id := range m.staffs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStaffs resets all changes to the "staffs" edge.
+func (m *CompanyMutation) ResetStaffs() {
+	m.staffs = nil
+	m.clearedstaffs = false
+	m.removedstaffs = nil
+}
+
 // Op returns the operation name.
 func (m *CompanyMutation) Op() Op {
 	return m.op
@@ -740,49 +798,85 @@ func (m *CompanyMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CompanyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.staffs != nil {
+		edges = append(edges, company.EdgeStaffs)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *CompanyMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case company.EdgeStaffs:
+		ids := make([]ent.Value, 0, len(m.staffs))
+		for id := range m.staffs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CompanyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedstaffs != nil {
+		edges = append(edges, company.EdgeStaffs)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *CompanyMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case company.EdgeStaffs:
+		ids := make([]ent.Value, 0, len(m.removedstaffs))
+		for id := range m.removedstaffs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CompanyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedstaffs {
+		edges = append(edges, company.EdgeStaffs)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *CompanyMutation) EdgeCleared(name string) bool {
+	switch name {
+	case company.EdgeStaffs:
+		return m.clearedstaffs
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *CompanyMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Company unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *CompanyMutation) ResetEdge(name string) error {
+	switch name {
+	case company.EdgeStaffs:
+		m.ResetStaffs()
+		return nil
+	}
 	return fmt.Errorf("unknown Company edge %s", name)
 }
 
@@ -2221,6 +2315,9 @@ type UserMutation struct {
 	jobs                map[int]struct{}
 	removedjobs         map[int]struct{}
 	clearedjobs         bool
+	experiences         map[int]struct{}
+	removedexperiences  map[int]struct{}
+	clearedexperiences  bool
 	done                bool
 	oldValue            func(context.Context) (*User, error)
 	predicates          []predicate.User
@@ -2754,6 +2851,59 @@ func (m *UserMutation) ResetJobs() {
 	m.removedjobs = nil
 }
 
+// AddExperienceIDs adds the "experiences" edge to the WorkExperience entity by ids.
+func (m *UserMutation) AddExperienceIDs(ids ...int) {
+	if m.experiences == nil {
+		m.experiences = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.experiences[ids[i]] = struct{}{}
+	}
+}
+
+// ClearExperiences clears the "experiences" edge to the WorkExperience entity.
+func (m *UserMutation) ClearExperiences() {
+	m.clearedexperiences = true
+}
+
+// ExperiencesCleared reports if the "experiences" edge to the WorkExperience entity was cleared.
+func (m *UserMutation) ExperiencesCleared() bool {
+	return m.clearedexperiences
+}
+
+// RemoveExperienceIDs removes the "experiences" edge to the WorkExperience entity by IDs.
+func (m *UserMutation) RemoveExperienceIDs(ids ...int) {
+	if m.removedexperiences == nil {
+		m.removedexperiences = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedexperiences[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedExperiences returns the removed IDs of the "experiences" edge to the WorkExperience entity.
+func (m *UserMutation) RemovedExperiencesIDs() (ids []int) {
+	for id := range m.removedexperiences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ExperiencesIDs returns the "experiences" edge IDs in the mutation.
+func (m *UserMutation) ExperiencesIDs() (ids []int) {
+	for id := range m.experiences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetExperiences resets all changes to the "experiences" edge.
+func (m *UserMutation) ResetExperiences() {
+	m.experiences = nil
+	m.clearedexperiences = false
+	m.removedexperiences = nil
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -3037,9 +3187,12 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.jobs != nil {
 		edges = append(edges, user.EdgeJobs)
+	}
+	if m.experiences != nil {
+		edges = append(edges, user.EdgeExperiences)
 	}
 	return edges
 }
@@ -3054,15 +3207,24 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeExperiences:
+		ids := make([]ent.Value, 0, len(m.experiences))
+		for id := range m.experiences {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedjobs != nil {
 		edges = append(edges, user.EdgeJobs)
+	}
+	if m.removedexperiences != nil {
+		edges = append(edges, user.EdgeExperiences)
 	}
 	return edges
 }
@@ -3077,15 +3239,24 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeExperiences:
+		ids := make([]ent.Value, 0, len(m.removedexperiences))
+		for id := range m.removedexperiences {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedjobs {
 		edges = append(edges, user.EdgeJobs)
+	}
+	if m.clearedexperiences {
+		edges = append(edges, user.EdgeExperiences)
 	}
 	return edges
 }
@@ -3096,6 +3267,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeJobs:
 		return m.clearedjobs
+	case user.EdgeExperiences:
+		return m.clearedexperiences
 	}
 	return false
 }
@@ -3115,6 +3288,816 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeJobs:
 		m.ResetJobs()
 		return nil
+	case user.EdgeExperiences:
+		m.ResetExperiences()
+		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// WorkExperienceMutation represents an operation that mutates the WorkExperience nodes in the graph.
+type WorkExperienceMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	title          *string
+	location       *string
+	start_date     *time.Time
+	end_date       *time.Time
+	description    *string
+	clearedFields  map[string]struct{}
+	user           map[int]struct{}
+	removeduser    map[int]struct{}
+	cleareduser    bool
+	company        map[int]struct{}
+	removedcompany map[int]struct{}
+	clearedcompany bool
+	done           bool
+	oldValue       func(context.Context) (*WorkExperience, error)
+	predicates     []predicate.WorkExperience
+}
+
+var _ ent.Mutation = (*WorkExperienceMutation)(nil)
+
+// workexperienceOption allows management of the mutation configuration using functional options.
+type workexperienceOption func(*WorkExperienceMutation)
+
+// newWorkExperienceMutation creates new mutation for the WorkExperience entity.
+func newWorkExperienceMutation(c config, op Op, opts ...workexperienceOption) *WorkExperienceMutation {
+	m := &WorkExperienceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeWorkExperience,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withWorkExperienceID sets the ID field of the mutation.
+func withWorkExperienceID(id int) workexperienceOption {
+	return func(m *WorkExperienceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *WorkExperience
+		)
+		m.oldValue = func(ctx context.Context) (*WorkExperience, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().WorkExperience.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withWorkExperience sets the old WorkExperience of the mutation.
+func withWorkExperience(node *WorkExperience) workexperienceOption {
+	return func(m *WorkExperienceMutation) {
+		m.oldValue = func(context.Context) (*WorkExperience, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m WorkExperienceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m WorkExperienceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *WorkExperienceMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *WorkExperienceMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *WorkExperienceMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the WorkExperience entity.
+// If the WorkExperience object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkExperienceMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *WorkExperienceMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *WorkExperienceMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *WorkExperienceMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the WorkExperience entity.
+// If the WorkExperience object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkExperienceMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *WorkExperienceMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *WorkExperienceMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *WorkExperienceMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the WorkExperience entity.
+// If the WorkExperience object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkExperienceMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *WorkExperienceMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetLocation sets the "location" field.
+func (m *WorkExperienceMutation) SetLocation(s string) {
+	m.location = &s
+}
+
+// Location returns the value of the "location" field in the mutation.
+func (m *WorkExperienceMutation) Location() (r string, exists bool) {
+	v := m.location
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocation returns the old "location" field's value of the WorkExperience entity.
+// If the WorkExperience object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkExperienceMutation) OldLocation(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldLocation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldLocation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocation: %w", err)
+	}
+	return oldValue.Location, nil
+}
+
+// ResetLocation resets all changes to the "location" field.
+func (m *WorkExperienceMutation) ResetLocation() {
+	m.location = nil
+}
+
+// SetStartDate sets the "start_date" field.
+func (m *WorkExperienceMutation) SetStartDate(t time.Time) {
+	m.start_date = &t
+}
+
+// StartDate returns the value of the "start_date" field in the mutation.
+func (m *WorkExperienceMutation) StartDate() (r time.Time, exists bool) {
+	v := m.start_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartDate returns the old "start_date" field's value of the WorkExperience entity.
+// If the WorkExperience object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkExperienceMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStartDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStartDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
+	}
+	return oldValue.StartDate, nil
+}
+
+// ResetStartDate resets all changes to the "start_date" field.
+func (m *WorkExperienceMutation) ResetStartDate() {
+	m.start_date = nil
+}
+
+// SetEndDate sets the "end_date" field.
+func (m *WorkExperienceMutation) SetEndDate(t time.Time) {
+	m.end_date = &t
+}
+
+// EndDate returns the value of the "end_date" field in the mutation.
+func (m *WorkExperienceMutation) EndDate() (r time.Time, exists bool) {
+	v := m.end_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndDate returns the old "end_date" field's value of the WorkExperience entity.
+// If the WorkExperience object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkExperienceMutation) OldEndDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldEndDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldEndDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndDate: %w", err)
+	}
+	return oldValue.EndDate, nil
+}
+
+// ClearEndDate clears the value of the "end_date" field.
+func (m *WorkExperienceMutation) ClearEndDate() {
+	m.end_date = nil
+	m.clearedFields[workexperience.FieldEndDate] = struct{}{}
+}
+
+// EndDateCleared returns if the "end_date" field was cleared in this mutation.
+func (m *WorkExperienceMutation) EndDateCleared() bool {
+	_, ok := m.clearedFields[workexperience.FieldEndDate]
+	return ok
+}
+
+// ResetEndDate resets all changes to the "end_date" field.
+func (m *WorkExperienceMutation) ResetEndDate() {
+	m.end_date = nil
+	delete(m.clearedFields, workexperience.FieldEndDate)
+}
+
+// SetDescription sets the "description" field.
+func (m *WorkExperienceMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *WorkExperienceMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the WorkExperience entity.
+// If the WorkExperience object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkExperienceMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *WorkExperienceMutation) ResetDescription() {
+	m.description = nil
+}
+
+// AddUserIDs adds the "user" edge to the User entity by ids.
+func (m *WorkExperienceMutation) AddUserIDs(ids ...int) {
+	if m.user == nil {
+		m.user = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.user[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *WorkExperienceMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *WorkExperienceMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// RemoveUserIDs removes the "user" edge to the User entity by IDs.
+func (m *WorkExperienceMutation) RemoveUserIDs(ids ...int) {
+	if m.removeduser == nil {
+		m.removeduser = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removeduser[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUser returns the removed IDs of the "user" edge to the User entity.
+func (m *WorkExperienceMutation) RemovedUserIDs() (ids []int) {
+	for id := range m.removeduser {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+func (m *WorkExperienceMutation) UserIDs() (ids []int) {
+	for id := range m.user {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *WorkExperienceMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+	m.removeduser = nil
+}
+
+// AddCompanyIDs adds the "company" edge to the Company entity by ids.
+func (m *WorkExperienceMutation) AddCompanyIDs(ids ...int) {
+	if m.company == nil {
+		m.company = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.company[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (m *WorkExperienceMutation) ClearCompany() {
+	m.clearedcompany = true
+}
+
+// CompanyCleared reports if the "company" edge to the Company entity was cleared.
+func (m *WorkExperienceMutation) CompanyCleared() bool {
+	return m.clearedcompany
+}
+
+// RemoveCompanyIDs removes the "company" edge to the Company entity by IDs.
+func (m *WorkExperienceMutation) RemoveCompanyIDs(ids ...int) {
+	if m.removedcompany == nil {
+		m.removedcompany = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedcompany[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCompany returns the removed IDs of the "company" edge to the Company entity.
+func (m *WorkExperienceMutation) RemovedCompanyIDs() (ids []int) {
+	for id := range m.removedcompany {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CompanyIDs returns the "company" edge IDs in the mutation.
+func (m *WorkExperienceMutation) CompanyIDs() (ids []int) {
+	for id := range m.company {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCompany resets all changes to the "company" edge.
+func (m *WorkExperienceMutation) ResetCompany() {
+	m.company = nil
+	m.clearedcompany = false
+	m.removedcompany = nil
+}
+
+// Op returns the operation name.
+func (m *WorkExperienceMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (WorkExperience).
+func (m *WorkExperienceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *WorkExperienceMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.created_at != nil {
+		fields = append(fields, workexperience.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, workexperience.FieldUpdatedAt)
+	}
+	if m.title != nil {
+		fields = append(fields, workexperience.FieldTitle)
+	}
+	if m.location != nil {
+		fields = append(fields, workexperience.FieldLocation)
+	}
+	if m.start_date != nil {
+		fields = append(fields, workexperience.FieldStartDate)
+	}
+	if m.end_date != nil {
+		fields = append(fields, workexperience.FieldEndDate)
+	}
+	if m.description != nil {
+		fields = append(fields, workexperience.FieldDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *WorkExperienceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case workexperience.FieldCreatedAt:
+		return m.CreatedAt()
+	case workexperience.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case workexperience.FieldTitle:
+		return m.Title()
+	case workexperience.FieldLocation:
+		return m.Location()
+	case workexperience.FieldStartDate:
+		return m.StartDate()
+	case workexperience.FieldEndDate:
+		return m.EndDate()
+	case workexperience.FieldDescription:
+		return m.Description()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *WorkExperienceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case workexperience.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case workexperience.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case workexperience.FieldTitle:
+		return m.OldTitle(ctx)
+	case workexperience.FieldLocation:
+		return m.OldLocation(ctx)
+	case workexperience.FieldStartDate:
+		return m.OldStartDate(ctx)
+	case workexperience.FieldEndDate:
+		return m.OldEndDate(ctx)
+	case workexperience.FieldDescription:
+		return m.OldDescription(ctx)
+	}
+	return nil, fmt.Errorf("unknown WorkExperience field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WorkExperienceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case workexperience.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case workexperience.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case workexperience.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case workexperience.FieldLocation:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocation(v)
+		return nil
+	case workexperience.FieldStartDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartDate(v)
+		return nil
+	case workexperience.FieldEndDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndDate(v)
+		return nil
+	case workexperience.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown WorkExperience field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *WorkExperienceMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *WorkExperienceMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WorkExperienceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown WorkExperience numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *WorkExperienceMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(workexperience.FieldEndDate) {
+		fields = append(fields, workexperience.FieldEndDate)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *WorkExperienceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *WorkExperienceMutation) ClearField(name string) error {
+	switch name {
+	case workexperience.FieldEndDate:
+		m.ClearEndDate()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkExperience nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *WorkExperienceMutation) ResetField(name string) error {
+	switch name {
+	case workexperience.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case workexperience.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case workexperience.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case workexperience.FieldLocation:
+		m.ResetLocation()
+		return nil
+	case workexperience.FieldStartDate:
+		m.ResetStartDate()
+		return nil
+	case workexperience.FieldEndDate:
+		m.ResetEndDate()
+		return nil
+	case workexperience.FieldDescription:
+		m.ResetDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkExperience field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *WorkExperienceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user != nil {
+		edges = append(edges, workexperience.EdgeUser)
+	}
+	if m.company != nil {
+		edges = append(edges, workexperience.EdgeCompany)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *WorkExperienceMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case workexperience.EdgeUser:
+		ids := make([]ent.Value, 0, len(m.user))
+		for id := range m.user {
+			ids = append(ids, id)
+		}
+		return ids
+	case workexperience.EdgeCompany:
+		ids := make([]ent.Value, 0, len(m.company))
+		for id := range m.company {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *WorkExperienceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removeduser != nil {
+		edges = append(edges, workexperience.EdgeUser)
+	}
+	if m.removedcompany != nil {
+		edges = append(edges, workexperience.EdgeCompany)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *WorkExperienceMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case workexperience.EdgeUser:
+		ids := make([]ent.Value, 0, len(m.removeduser))
+		for id := range m.removeduser {
+			ids = append(ids, id)
+		}
+		return ids
+	case workexperience.EdgeCompany:
+		ids := make([]ent.Value, 0, len(m.removedcompany))
+		for id := range m.removedcompany {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *WorkExperienceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser {
+		edges = append(edges, workexperience.EdgeUser)
+	}
+	if m.clearedcompany {
+		edges = append(edges, workexperience.EdgeCompany)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *WorkExperienceMutation) EdgeCleared(name string) bool {
+	switch name {
+	case workexperience.EdgeUser:
+		return m.cleareduser
+	case workexperience.EdgeCompany:
+		return m.clearedcompany
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *WorkExperienceMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown WorkExperience unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *WorkExperienceMutation) ResetEdge(name string) error {
+	switch name {
+	case workexperience.EdgeUser:
+		m.ResetUser()
+		return nil
+	case workexperience.EdgeCompany:
+		m.ResetCompany()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkExperience edge %s", name)
 }

@@ -9,6 +9,7 @@ import (
 	"refernet/ent/job"
 	"refernet/ent/skill"
 	"refernet/ent/user"
+	"refernet/ent/workexperience"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -34,10 +35,11 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		company.Table: company.ValidColumn,
-		job.Table:     job.ValidColumn,
-		skill.Table:   skill.ValidColumn,
-		user.Table:    user.ValidColumn,
+		company.Table:        company.ValidColumn,
+		job.Table:            job.ValidColumn,
+		skill.Table:          skill.ValidColumn,
+		user.Table:           user.ValidColumn,
+		workexperience.Table: workexperience.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

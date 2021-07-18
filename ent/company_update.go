@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"refernet/ent/company"
 	"refernet/ent/predicate"
+	"refernet/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -98,9 +99,45 @@ func (cu *CompanyUpdate) AddFoundedAt(i int) *CompanyUpdate {
 	return cu
 }
 
+// AddStaffIDs adds the "staffs" edge to the WorkExperience entity by IDs.
+func (cu *CompanyUpdate) AddStaffIDs(ids ...int) *CompanyUpdate {
+	cu.mutation.AddStaffIDs(ids...)
+	return cu
+}
+
+// AddStaffs adds the "staffs" edges to the WorkExperience entity.
+func (cu *CompanyUpdate) AddStaffs(w ...*WorkExperience) *CompanyUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return cu.AddStaffIDs(ids...)
+}
+
 // Mutation returns the CompanyMutation object of the builder.
 func (cu *CompanyUpdate) Mutation() *CompanyMutation {
 	return cu.mutation
+}
+
+// ClearStaffs clears all "staffs" edges to the WorkExperience entity.
+func (cu *CompanyUpdate) ClearStaffs() *CompanyUpdate {
+	cu.mutation.ClearStaffs()
+	return cu
+}
+
+// RemoveStaffIDs removes the "staffs" edge to WorkExperience entities by IDs.
+func (cu *CompanyUpdate) RemoveStaffIDs(ids ...int) *CompanyUpdate {
+	cu.mutation.RemoveStaffIDs(ids...)
+	return cu
+}
+
+// RemoveStaffs removes "staffs" edges to WorkExperience entities.
+func (cu *CompanyUpdate) RemoveStaffs(w ...*WorkExperience) *CompanyUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return cu.RemoveStaffIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -261,6 +298,60 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: company.FieldFoundedAt,
 		})
 	}
+	if cu.mutation.StaffsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   company.StaffsTable,
+			Columns: company.StaffsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedStaffsIDs(); len(nodes) > 0 && !cu.mutation.StaffsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   company.StaffsTable,
+			Columns: company.StaffsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.StaffsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   company.StaffsTable,
+			Columns: company.StaffsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{company.Label}
@@ -351,9 +442,45 @@ func (cuo *CompanyUpdateOne) AddFoundedAt(i int) *CompanyUpdateOne {
 	return cuo
 }
 
+// AddStaffIDs adds the "staffs" edge to the WorkExperience entity by IDs.
+func (cuo *CompanyUpdateOne) AddStaffIDs(ids ...int) *CompanyUpdateOne {
+	cuo.mutation.AddStaffIDs(ids...)
+	return cuo
+}
+
+// AddStaffs adds the "staffs" edges to the WorkExperience entity.
+func (cuo *CompanyUpdateOne) AddStaffs(w ...*WorkExperience) *CompanyUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return cuo.AddStaffIDs(ids...)
+}
+
 // Mutation returns the CompanyMutation object of the builder.
 func (cuo *CompanyUpdateOne) Mutation() *CompanyMutation {
 	return cuo.mutation
+}
+
+// ClearStaffs clears all "staffs" edges to the WorkExperience entity.
+func (cuo *CompanyUpdateOne) ClearStaffs() *CompanyUpdateOne {
+	cuo.mutation.ClearStaffs()
+	return cuo
+}
+
+// RemoveStaffIDs removes the "staffs" edge to WorkExperience entities by IDs.
+func (cuo *CompanyUpdateOne) RemoveStaffIDs(ids ...int) *CompanyUpdateOne {
+	cuo.mutation.RemoveStaffIDs(ids...)
+	return cuo
+}
+
+// RemoveStaffs removes "staffs" edges to WorkExperience entities.
+func (cuo *CompanyUpdateOne) RemoveStaffs(w ...*WorkExperience) *CompanyUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return cuo.RemoveStaffIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -537,6 +664,60 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 			Value:  value,
 			Column: company.FieldFoundedAt,
 		})
+	}
+	if cuo.mutation.StaffsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   company.StaffsTable,
+			Columns: company.StaffsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedStaffsIDs(); len(nodes) > 0 && !cuo.mutation.StaffsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   company.StaffsTable,
+			Columns: company.StaffsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.StaffsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   company.StaffsTable,
+			Columns: company.StaffsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Company{config: cuo.config}
 	_spec.Assign = _node.assignValues

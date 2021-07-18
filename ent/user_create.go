@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"refernet/ent/job"
 	"refernet/ent/user"
+	"refernet/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -124,6 +125,21 @@ func (uc *UserCreate) AddJobs(j ...*Job) *UserCreate {
 		ids[i] = j[i].ID
 	}
 	return uc.AddJobIDs(ids...)
+}
+
+// AddExperienceIDs adds the "experiences" edge to the WorkExperience entity by IDs.
+func (uc *UserCreate) AddExperienceIDs(ids ...int) *UserCreate {
+	uc.mutation.AddExperienceIDs(ids...)
+	return uc
+}
+
+// AddExperiences adds the "experiences" edges to the WorkExperience entity.
+func (uc *UserCreate) AddExperiences(w ...*WorkExperience) *UserCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uc.AddExperienceIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -373,6 +389,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: job.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ExperiencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.ExperiencesTable,
+			Columns: user.ExperiencesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
 				},
 			},
 		}

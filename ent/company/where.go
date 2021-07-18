@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -858,6 +859,34 @@ func FoundedAtLT(v int) predicate.Company {
 func FoundedAtLTE(v int) predicate.Company {
 	return predicate.Company(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldFoundedAt), v))
+	})
+}
+
+// HasStaffs applies the HasEdge predicate on the "staffs" edge.
+func HasStaffs() predicate.Company {
+	return predicate.Company(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(StaffsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, StaffsTable, StaffsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStaffsWith applies the HasEdge predicate on the "staffs" edge with a given conditions (other predicates).
+func HasStaffsWith(preds ...predicate.WorkExperience) predicate.Company {
+	return predicate.Company(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(StaffsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, StaffsTable, StaffsPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

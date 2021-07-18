@@ -95,15 +95,90 @@ var (
 		PrimaryKey:  []*schema.Column{UsersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// WorkExperiencesColumns holds the columns for the "work_experiences" table.
+	WorkExperiencesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "title", Type: field.TypeString},
+		{Name: "location", Type: field.TypeString},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "description", Type: field.TypeString},
+	}
+	// WorkExperiencesTable holds the schema information for the "work_experiences" table.
+	WorkExperiencesTable = &schema.Table{
+		Name:        "work_experiences",
+		Columns:     WorkExperiencesColumns,
+		PrimaryKey:  []*schema.Column{WorkExperiencesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
+	// CompanyStaffsColumns holds the columns for the "company_staffs" table.
+	CompanyStaffsColumns = []*schema.Column{
+		{Name: "company_id", Type: field.TypeInt},
+		{Name: "work_experience_id", Type: field.TypeInt},
+	}
+	// CompanyStaffsTable holds the schema information for the "company_staffs" table.
+	CompanyStaffsTable = &schema.Table{
+		Name:       "company_staffs",
+		Columns:    CompanyStaffsColumns,
+		PrimaryKey: []*schema.Column{CompanyStaffsColumns[0], CompanyStaffsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "company_staffs_company_id",
+				Columns:    []*schema.Column{CompanyStaffsColumns[0]},
+				RefColumns: []*schema.Column{CompaniesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "company_staffs_work_experience_id",
+				Columns:    []*schema.Column{CompanyStaffsColumns[1]},
+				RefColumns: []*schema.Column{WorkExperiencesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// UserExperiencesColumns holds the columns for the "user_experiences" table.
+	UserExperiencesColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "work_experience_id", Type: field.TypeInt},
+	}
+	// UserExperiencesTable holds the schema information for the "user_experiences" table.
+	UserExperiencesTable = &schema.Table{
+		Name:       "user_experiences",
+		Columns:    UserExperiencesColumns,
+		PrimaryKey: []*schema.Column{UserExperiencesColumns[0], UserExperiencesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_experiences_user_id",
+				Columns:    []*schema.Column{UserExperiencesColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_experiences_work_experience_id",
+				Columns:    []*schema.Column{UserExperiencesColumns[1]},
+				RefColumns: []*schema.Column{WorkExperiencesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CompaniesTable,
 		JobsTable,
 		SkillsTable,
 		UsersTable,
+		WorkExperiencesTable,
+		CompanyStaffsTable,
+		UserExperiencesTable,
 	}
 )
 
 func init() {
 	JobsTable.ForeignKeys[0].RefTable = UsersTable
+	CompanyStaffsTable.ForeignKeys[0].RefTable = CompaniesTable
+	CompanyStaffsTable.ForeignKeys[1].RefTable = WorkExperiencesTable
+	UserExperiencesTable.ForeignKeys[0].RefTable = UsersTable
+	UserExperiencesTable.ForeignKeys[1].RefTable = WorkExperiencesTable
 }

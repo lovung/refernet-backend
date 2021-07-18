@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"refernet/ent/company"
+	"refernet/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -96,6 +97,21 @@ func (cc *CompanyCreate) SetNillableSize(c *company.Size) *CompanyCreate {
 func (cc *CompanyCreate) SetFoundedAt(i int) *CompanyCreate {
 	cc.mutation.SetFoundedAt(i)
 	return cc
+}
+
+// AddStaffIDs adds the "staffs" edge to the WorkExperience entity by IDs.
+func (cc *CompanyCreate) AddStaffIDs(ids ...int) *CompanyCreate {
+	cc.mutation.AddStaffIDs(ids...)
+	return cc
+}
+
+// AddStaffs adds the "staffs" edges to the WorkExperience entity.
+func (cc *CompanyCreate) AddStaffs(w ...*WorkExperience) *CompanyCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return cc.AddStaffIDs(ids...)
 }
 
 // Mutation returns the CompanyMutation object of the builder.
@@ -306,6 +322,25 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 			Column: company.FieldFoundedAt,
 		})
 		_node.FoundedAt = value
+	}
+	if nodes := cc.mutation.StaffsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   company.StaffsTable,
+			Columns: company.StaffsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

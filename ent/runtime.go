@@ -8,6 +8,7 @@ import (
 	"refernet/ent/schema"
 	"refernet/ent/skill"
 	"refernet/ent/user"
+	"refernet/ent/workexperience"
 	"time"
 )
 
@@ -103,4 +104,18 @@ func init() {
 	userDescEmail := userFields[4].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
+	workexperienceFields := schema.WorkExperience{}.Fields()
+	_ = workexperienceFields
+	// workexperienceDescCreatedAt is the schema descriptor for created_at field.
+	workexperienceDescCreatedAt := workexperienceFields[0].Descriptor()
+	// workexperience.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workexperience.DefaultCreatedAt = workexperienceDescCreatedAt.Default.(func() time.Time)
+	// workexperienceDescUpdatedAt is the schema descriptor for updated_at field.
+	workexperienceDescUpdatedAt := workexperienceFields[1].Descriptor()
+	// workexperience.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workexperience.DefaultUpdatedAt = workexperienceDescUpdatedAt.Default.(func() time.Time)
+	// workexperienceDescTitle is the schema descriptor for title field.
+	workexperienceDescTitle := workexperienceFields[2].Descriptor()
+	// workexperience.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	workexperience.TitleValidator = workexperienceDescTitle.Validators[0].(func(string) error)
 }

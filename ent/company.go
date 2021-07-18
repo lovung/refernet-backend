@@ -35,6 +35,27 @@ type Company struct {
 	Size company.Size `json:"size,omitempty"`
 	// FoundedAt holds the value of the "founded_at" field.
 	FoundedAt int `json:"founded_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CompanyQuery when eager-loading is set.
+	Edges CompanyEdges `json:"edges"`
+}
+
+// CompanyEdges holds the relations/edges for other nodes in the graph.
+type CompanyEdges struct {
+	// Staffs holds the value of the staffs edge.
+	Staffs []*WorkExperience `json:"staffs,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// StaffsOrErr returns the Staffs value or an error if the edge
+// was not loaded in eager-loading.
+func (e CompanyEdges) StaffsOrErr() ([]*WorkExperience, error) {
+	if e.loadedTypes[0] {
+		return e.Staffs, nil
+	}
+	return nil, &NotLoadedError{edge: "staffs"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -131,6 +152,11 @@ func (c *Company) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryStaffs queries the "staffs" edge of the Company entity.
+func (c *Company) QueryStaffs() *WorkExperienceQuery {
+	return (&CompanyClient{config: c.config}).QueryStaffs(c)
 }
 
 // Update returns a builder for updating this Company.

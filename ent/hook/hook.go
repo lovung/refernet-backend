@@ -60,6 +60,19 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return f(ctx, mv)
 }
 
+// The WorkExperienceFunc type is an adapter to allow the use of ordinary
+// function as WorkExperience mutator.
+type WorkExperienceFunc func(context.Context, *ent.WorkExperienceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkExperienceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.WorkExperienceMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WorkExperienceMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 

@@ -20,6 +20,8 @@ type Tx struct {
 	Skill *SkillClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// WorkExperience is the client for interacting with the WorkExperience builders.
+	WorkExperience *WorkExperienceClient
 
 	// lazily loaded.
 	client     *Client
@@ -159,6 +161,7 @@ func (tx *Tx) init() {
 	tx.Job = NewJobClient(tx.config)
 	tx.Skill = NewSkillClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.WorkExperience = NewWorkExperienceClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

@@ -47,9 +47,11 @@ type User struct {
 type UserEdges struct {
 	// Jobs holds the value of the jobs edge.
 	Jobs []*Job `json:"jobs,omitempty"`
+	// Experiences holds the value of the experiences edge.
+	Experiences []*WorkExperience `json:"experiences,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // JobsOrErr returns the Jobs value or an error if the edge
@@ -59,6 +61,15 @@ func (e UserEdges) JobsOrErr() ([]*Job, error) {
 		return e.Jobs, nil
 	}
 	return nil, &NotLoadedError{edge: "jobs"}
+}
+
+// ExperiencesOrErr returns the Experiences value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ExperiencesOrErr() ([]*WorkExperience, error) {
+	if e.loadedTypes[1] {
+		return e.Experiences, nil
+	}
+	return nil, &NotLoadedError{edge: "experiences"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -167,6 +178,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 // QueryJobs queries the "jobs" edge of the User entity.
 func (u *User) QueryJobs() *JobQuery {
 	return (&UserClient{config: u.config}).QueryJobs(u)
+}
+
+// QueryExperiences queries the "experiences" edge of the User entity.
+func (u *User) QueryExperiences() *WorkExperienceQuery {
+	return (&UserClient{config: u.config}).QueryExperiences(u)
 }
 
 // Update returns a builder for updating this User.
