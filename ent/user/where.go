@@ -1285,7 +1285,7 @@ func HasExperiences() predicate.User {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ExperiencesTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, ExperiencesTable, ExperiencesPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, ExperiencesTable, ExperiencesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -1297,7 +1297,7 @@ func HasExperiencesWith(preds ...predicate.WorkExperience) predicate.User {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ExperiencesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, ExperiencesTable, ExperiencesPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, ExperiencesTable, ExperiencesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

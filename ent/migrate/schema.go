@@ -105,59 +105,49 @@ var (
 		{Name: "start_date", Type: field.TypeTime},
 		{Name: "end_date", Type: field.TypeTime, Nullable: true},
 		{Name: "description", Type: field.TypeString},
+		{Name: "company_staffs", Type: field.TypeInt, Nullable: true},
+		{Name: "user_experiences", Type: field.TypeInt, Nullable: true},
 	}
 	// WorkExperiencesTable holds the schema information for the "work_experiences" table.
 	WorkExperiencesTable = &schema.Table{
-		Name:        "work_experiences",
-		Columns:     WorkExperiencesColumns,
-		PrimaryKey:  []*schema.Column{WorkExperiencesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
-	}
-	// CompanyStaffsColumns holds the columns for the "company_staffs" table.
-	CompanyStaffsColumns = []*schema.Column{
-		{Name: "company_id", Type: field.TypeInt},
-		{Name: "work_experience_id", Type: field.TypeInt},
-	}
-	// CompanyStaffsTable holds the schema information for the "company_staffs" table.
-	CompanyStaffsTable = &schema.Table{
-		Name:       "company_staffs",
-		Columns:    CompanyStaffsColumns,
-		PrimaryKey: []*schema.Column{CompanyStaffsColumns[0], CompanyStaffsColumns[1]},
+		Name:       "work_experiences",
+		Columns:    WorkExperiencesColumns,
+		PrimaryKey: []*schema.Column{WorkExperiencesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "company_staffs_company_id",
-				Columns:    []*schema.Column{CompanyStaffsColumns[0]},
+				Symbol:     "work_experiences_companies_staffs",
+				Columns:    []*schema.Column{WorkExperiencesColumns[8]},
 				RefColumns: []*schema.Column{CompaniesColumns[0]},
-				OnDelete:   schema.Cascade,
+				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "company_staffs_work_experience_id",
-				Columns:    []*schema.Column{CompanyStaffsColumns[1]},
-				RefColumns: []*schema.Column{WorkExperiencesColumns[0]},
-				OnDelete:   schema.Cascade,
+				Symbol:     "work_experiences_users_experiences",
+				Columns:    []*schema.Column{WorkExperiencesColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
-	// UserExperiencesColumns holds the columns for the "user_experiences" table.
-	UserExperiencesColumns = []*schema.Column{
-		{Name: "user_id", Type: field.TypeInt},
+	// SkillExperiencesColumns holds the columns for the "skill_experiences" table.
+	SkillExperiencesColumns = []*schema.Column{
+		{Name: "skill_id", Type: field.TypeInt},
 		{Name: "work_experience_id", Type: field.TypeInt},
 	}
-	// UserExperiencesTable holds the schema information for the "user_experiences" table.
-	UserExperiencesTable = &schema.Table{
-		Name:       "user_experiences",
-		Columns:    UserExperiencesColumns,
-		PrimaryKey: []*schema.Column{UserExperiencesColumns[0], UserExperiencesColumns[1]},
+	// SkillExperiencesTable holds the schema information for the "skill_experiences" table.
+	SkillExperiencesTable = &schema.Table{
+		Name:       "skill_experiences",
+		Columns:    SkillExperiencesColumns,
+		PrimaryKey: []*schema.Column{SkillExperiencesColumns[0], SkillExperiencesColumns[1]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "user_experiences_user_id",
-				Columns:    []*schema.Column{UserExperiencesColumns[0]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
+				Symbol:     "skill_experiences_skill_id",
+				Columns:    []*schema.Column{SkillExperiencesColumns[0]},
+				RefColumns: []*schema.Column{SkillsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "user_experiences_work_experience_id",
-				Columns:    []*schema.Column{UserExperiencesColumns[1]},
+				Symbol:     "skill_experiences_work_experience_id",
+				Columns:    []*schema.Column{SkillExperiencesColumns[1]},
 				RefColumns: []*schema.Column{WorkExperiencesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -170,15 +160,14 @@ var (
 		SkillsTable,
 		UsersTable,
 		WorkExperiencesTable,
-		CompanyStaffsTable,
-		UserExperiencesTable,
+		SkillExperiencesTable,
 	}
 )
 
 func init() {
 	JobsTable.ForeignKeys[0].RefTable = UsersTable
-	CompanyStaffsTable.ForeignKeys[0].RefTable = CompaniesTable
-	CompanyStaffsTable.ForeignKeys[1].RefTable = WorkExperiencesTable
-	UserExperiencesTable.ForeignKeys[0].RefTable = UsersTable
-	UserExperiencesTable.ForeignKeys[1].RefTable = WorkExperiencesTable
+	WorkExperiencesTable.ForeignKeys[0].RefTable = CompaniesTable
+	WorkExperiencesTable.ForeignKeys[1].RefTable = UsersTable
+	SkillExperiencesTable.ForeignKeys[0].RefTable = SkillsTable
+	SkillExperiencesTable.ForeignKeys[1].RefTable = WorkExperiencesTable
 }

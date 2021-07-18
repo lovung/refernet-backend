@@ -21,8 +21,15 @@ const (
 	FieldDarkLogoURL = "dark_logo_url"
 	// FieldLightLogoURL holds the string denoting the light_logo_url field in the database.
 	FieldLightLogoURL = "light_logo_url"
+	// EdgeExperiences holds the string denoting the experiences edge name in mutations.
+	EdgeExperiences = "experiences"
 	// Table holds the table name of the skill in the database.
 	Table = "skills"
+	// ExperiencesTable is the table the holds the experiences relation/edge. The primary key declared below.
+	ExperiencesTable = "skill_experiences"
+	// ExperiencesInverseTable is the table name for the WorkExperience entity.
+	// It exists in this package in order to avoid circular dependency with the "workexperience" package.
+	ExperiencesInverseTable = "work_experiences"
 )
 
 // Columns holds all SQL columns for skill fields.
@@ -34,6 +41,12 @@ var Columns = []string{
 	FieldDarkLogoURL,
 	FieldLightLogoURL,
 }
+
+var (
+	// ExperiencesPrimaryKey and ExperiencesColumn2 are the table columns denoting the
+	// primary key for the experiences relation (M2M).
+	ExperiencesPrimaryKey = []string{"skill_id", "work_experience_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

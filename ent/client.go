@@ -243,7 +243,7 @@ func (c *CompanyClient) QueryStaffs(co *Company) *WorkExperienceQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(company.Table, company.FieldID, id),
 			sqlgraph.To(workexperience.Table, workexperience.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, company.StaffsTable, company.StaffsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, company.StaffsTable, company.StaffsColumn),
 		)
 		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
 		return fromV, nil
@@ -447,6 +447,22 @@ func (c *SkillClient) GetX(ctx context.Context, id int) *Skill {
 	return obj
 }
 
+// QueryExperiences queries the experiences edge of a Skill.
+func (c *SkillClient) QueryExperiences(s *Skill) *WorkExperienceQuery {
+	query := &WorkExperienceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skill.Table, skill.FieldID, id),
+			sqlgraph.To(workexperience.Table, workexperience.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, skill.ExperiencesTable, skill.ExperiencesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SkillClient) Hooks() []Hook {
 	return c.hooks.Skill
@@ -561,7 +577,7 @@ func (c *UserClient) QueryExperiences(u *User) *WorkExperienceQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(workexperience.Table, workexperience.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.ExperiencesTable, user.ExperiencesPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ExperiencesTable, user.ExperiencesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -659,15 +675,15 @@ func (c *WorkExperienceClient) GetX(ctx context.Context, id int) *WorkExperience
 	return obj
 }
 
-// QueryUser queries the user edge of a WorkExperience.
-func (c *WorkExperienceClient) QueryUser(we *WorkExperience) *UserQuery {
+// QueryOwner queries the owner edge of a WorkExperience.
+func (c *WorkExperienceClient) QueryOwner(we *WorkExperience) *UserQuery {
 	query := &UserQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := we.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(workexperience.Table, workexperience.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, workexperience.UserTable, workexperience.UserPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, workexperience.OwnerTable, workexperience.OwnerColumn),
 		)
 		fromV = sqlgraph.Neighbors(we.driver.Dialect(), step)
 		return fromV, nil
@@ -675,15 +691,31 @@ func (c *WorkExperienceClient) QueryUser(we *WorkExperience) *UserQuery {
 	return query
 }
 
-// QueryCompany queries the company edge of a WorkExperience.
-func (c *WorkExperienceClient) QueryCompany(we *WorkExperience) *CompanyQuery {
+// QueryInCompany queries the in_company edge of a WorkExperience.
+func (c *WorkExperienceClient) QueryInCompany(we *WorkExperience) *CompanyQuery {
 	query := &CompanyQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := we.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(workexperience.Table, workexperience.FieldID, id),
 			sqlgraph.To(company.Table, company.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, workexperience.CompanyTable, workexperience.CompanyPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, workexperience.InCompanyTable, workexperience.InCompanyColumn),
+		)
+		fromV = sqlgraph.Neighbors(we.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySkills queries the skills edge of a WorkExperience.
+func (c *WorkExperienceClient) QuerySkills(we *WorkExperience) *SkillQuery {
+	query := &SkillQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := we.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workexperience.Table, workexperience.FieldID, id),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, workexperience.SkillsTable, workexperience.SkillsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(we.driver.Dialect(), step)
 		return fromV, nil

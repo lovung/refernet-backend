@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"refernet/ent/company"
 	"refernet/ent/predicate"
+	"refernet/ent/skill"
 	"refernet/ent/user"
 	"refernet/ent/workexperience"
 	"time"
@@ -87,34 +88,57 @@ func (weu *WorkExperienceUpdate) SetDescription(s string) *WorkExperienceUpdate 
 	return weu
 }
 
-// AddUserIDs adds the "user" edge to the User entity by IDs.
-func (weu *WorkExperienceUpdate) AddUserIDs(ids ...int) *WorkExperienceUpdate {
-	weu.mutation.AddUserIDs(ids...)
+// SetOwnerID sets the "owner" edge to the User entity by ID.
+func (weu *WorkExperienceUpdate) SetOwnerID(id int) *WorkExperienceUpdate {
+	weu.mutation.SetOwnerID(id)
 	return weu
 }
 
-// AddUser adds the "user" edges to the User entity.
-func (weu *WorkExperienceUpdate) AddUser(u ...*User) *WorkExperienceUpdate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
+func (weu *WorkExperienceUpdate) SetNillableOwnerID(id *int) *WorkExperienceUpdate {
+	if id != nil {
+		weu = weu.SetOwnerID(*id)
 	}
-	return weu.AddUserIDs(ids...)
-}
-
-// AddCompanyIDs adds the "company" edge to the Company entity by IDs.
-func (weu *WorkExperienceUpdate) AddCompanyIDs(ids ...int) *WorkExperienceUpdate {
-	weu.mutation.AddCompanyIDs(ids...)
 	return weu
 }
 
-// AddCompany adds the "company" edges to the Company entity.
-func (weu *WorkExperienceUpdate) AddCompany(c ...*Company) *WorkExperienceUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+// SetOwner sets the "owner" edge to the User entity.
+func (weu *WorkExperienceUpdate) SetOwner(u *User) *WorkExperienceUpdate {
+	return weu.SetOwnerID(u.ID)
+}
+
+// SetInCompanyID sets the "in_company" edge to the Company entity by ID.
+func (weu *WorkExperienceUpdate) SetInCompanyID(id int) *WorkExperienceUpdate {
+	weu.mutation.SetInCompanyID(id)
+	return weu
+}
+
+// SetNillableInCompanyID sets the "in_company" edge to the Company entity by ID if the given value is not nil.
+func (weu *WorkExperienceUpdate) SetNillableInCompanyID(id *int) *WorkExperienceUpdate {
+	if id != nil {
+		weu = weu.SetInCompanyID(*id)
 	}
-	return weu.AddCompanyIDs(ids...)
+	return weu
+}
+
+// SetInCompany sets the "in_company" edge to the Company entity.
+func (weu *WorkExperienceUpdate) SetInCompany(c *Company) *WorkExperienceUpdate {
+	return weu.SetInCompanyID(c.ID)
+}
+
+// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
+func (weu *WorkExperienceUpdate) AddSkillIDs(ids ...int) *WorkExperienceUpdate {
+	weu.mutation.AddSkillIDs(ids...)
+	return weu
+}
+
+// AddSkills adds the "skills" edges to the Skill entity.
+func (weu *WorkExperienceUpdate) AddSkills(s ...*Skill) *WorkExperienceUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return weu.AddSkillIDs(ids...)
 }
 
 // Mutation returns the WorkExperienceMutation object of the builder.
@@ -122,46 +146,37 @@ func (weu *WorkExperienceUpdate) Mutation() *WorkExperienceMutation {
 	return weu.mutation
 }
 
-// ClearUser clears all "user" edges to the User entity.
-func (weu *WorkExperienceUpdate) ClearUser() *WorkExperienceUpdate {
-	weu.mutation.ClearUser()
+// ClearOwner clears the "owner" edge to the User entity.
+func (weu *WorkExperienceUpdate) ClearOwner() *WorkExperienceUpdate {
+	weu.mutation.ClearOwner()
 	return weu
 }
 
-// RemoveUserIDs removes the "user" edge to User entities by IDs.
-func (weu *WorkExperienceUpdate) RemoveUserIDs(ids ...int) *WorkExperienceUpdate {
-	weu.mutation.RemoveUserIDs(ids...)
+// ClearInCompany clears the "in_company" edge to the Company entity.
+func (weu *WorkExperienceUpdate) ClearInCompany() *WorkExperienceUpdate {
+	weu.mutation.ClearInCompany()
 	return weu
 }
 
-// RemoveUser removes "user" edges to User entities.
-func (weu *WorkExperienceUpdate) RemoveUser(u ...*User) *WorkExperienceUpdate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// ClearSkills clears all "skills" edges to the Skill entity.
+func (weu *WorkExperienceUpdate) ClearSkills() *WorkExperienceUpdate {
+	weu.mutation.ClearSkills()
+	return weu
+}
+
+// RemoveSkillIDs removes the "skills" edge to Skill entities by IDs.
+func (weu *WorkExperienceUpdate) RemoveSkillIDs(ids ...int) *WorkExperienceUpdate {
+	weu.mutation.RemoveSkillIDs(ids...)
+	return weu
+}
+
+// RemoveSkills removes "skills" edges to Skill entities.
+func (weu *WorkExperienceUpdate) RemoveSkills(s ...*Skill) *WorkExperienceUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return weu.RemoveUserIDs(ids...)
-}
-
-// ClearCompany clears all "company" edges to the Company entity.
-func (weu *WorkExperienceUpdate) ClearCompany() *WorkExperienceUpdate {
-	weu.mutation.ClearCompany()
-	return weu
-}
-
-// RemoveCompanyIDs removes the "company" edge to Company entities by IDs.
-func (weu *WorkExperienceUpdate) RemoveCompanyIDs(ids ...int) *WorkExperienceUpdate {
-	weu.mutation.RemoveCompanyIDs(ids...)
-	return weu
-}
-
-// RemoveCompany removes "company" edges to Company entities.
-func (weu *WorkExperienceUpdate) RemoveCompany(c ...*Company) *WorkExperienceUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return weu.RemoveCompanyIDs(ids...)
+	return weu.RemoveSkillIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -297,12 +312,12 @@ func (weu *WorkExperienceUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Column: workexperience.FieldDescription,
 		})
 	}
-	if weu.mutation.UserCleared() {
+	if weu.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   workexperience.UserTable,
-			Columns: workexperience.UserPrimaryKey,
+			Table:   workexperience.OwnerTable,
+			Columns: []string{workexperience.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -313,31 +328,12 @@ func (weu *WorkExperienceUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := weu.mutation.RemovedUserIDs(); len(nodes) > 0 && !weu.mutation.UserCleared() {
+	if nodes := weu.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   workexperience.UserTable,
-			Columns: workexperience.UserPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := weu.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   workexperience.UserTable,
-			Columns: workexperience.UserPrimaryKey,
+			Table:   workexperience.OwnerTable,
+			Columns: []string{workexperience.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -351,12 +347,12 @@ func (weu *WorkExperienceUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if weu.mutation.CompanyCleared() {
+	if weu.mutation.InCompanyCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   workexperience.CompanyTable,
-			Columns: workexperience.CompanyPrimaryKey,
+			Table:   workexperience.InCompanyTable,
+			Columns: []string{workexperience.InCompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -367,12 +363,12 @@ func (weu *WorkExperienceUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := weu.mutation.RemovedCompanyIDs(); len(nodes) > 0 && !weu.mutation.CompanyCleared() {
+	if nodes := weu.mutation.InCompanyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   workexperience.CompanyTable,
-			Columns: workexperience.CompanyPrimaryKey,
+			Table:   workexperience.InCompanyTable,
+			Columns: []string{workexperience.InCompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -384,19 +380,54 @@ func (weu *WorkExperienceUpdate) sqlSave(ctx context.Context) (n int, err error)
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := weu.mutation.CompanyIDs(); len(nodes) > 0 {
+	if weu.mutation.SkillsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   workexperience.CompanyTable,
-			Columns: workexperience.CompanyPrimaryKey,
+			Table:   workexperience.SkillsTable,
+			Columns: workexperience.SkillsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: company.FieldID,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := weu.mutation.RemovedSkillsIDs(); len(nodes) > 0 && !weu.mutation.SkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   workexperience.SkillsTable,
+			Columns: workexperience.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := weu.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   workexperience.SkillsTable,
+			Columns: workexperience.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
 				},
 			},
 		}
@@ -482,34 +513,57 @@ func (weuo *WorkExperienceUpdateOne) SetDescription(s string) *WorkExperienceUpd
 	return weuo
 }
 
-// AddUserIDs adds the "user" edge to the User entity by IDs.
-func (weuo *WorkExperienceUpdateOne) AddUserIDs(ids ...int) *WorkExperienceUpdateOne {
-	weuo.mutation.AddUserIDs(ids...)
+// SetOwnerID sets the "owner" edge to the User entity by ID.
+func (weuo *WorkExperienceUpdateOne) SetOwnerID(id int) *WorkExperienceUpdateOne {
+	weuo.mutation.SetOwnerID(id)
 	return weuo
 }
 
-// AddUser adds the "user" edges to the User entity.
-func (weuo *WorkExperienceUpdateOne) AddUser(u ...*User) *WorkExperienceUpdateOne {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
+func (weuo *WorkExperienceUpdateOne) SetNillableOwnerID(id *int) *WorkExperienceUpdateOne {
+	if id != nil {
+		weuo = weuo.SetOwnerID(*id)
 	}
-	return weuo.AddUserIDs(ids...)
-}
-
-// AddCompanyIDs adds the "company" edge to the Company entity by IDs.
-func (weuo *WorkExperienceUpdateOne) AddCompanyIDs(ids ...int) *WorkExperienceUpdateOne {
-	weuo.mutation.AddCompanyIDs(ids...)
 	return weuo
 }
 
-// AddCompany adds the "company" edges to the Company entity.
-func (weuo *WorkExperienceUpdateOne) AddCompany(c ...*Company) *WorkExperienceUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+// SetOwner sets the "owner" edge to the User entity.
+func (weuo *WorkExperienceUpdateOne) SetOwner(u *User) *WorkExperienceUpdateOne {
+	return weuo.SetOwnerID(u.ID)
+}
+
+// SetInCompanyID sets the "in_company" edge to the Company entity by ID.
+func (weuo *WorkExperienceUpdateOne) SetInCompanyID(id int) *WorkExperienceUpdateOne {
+	weuo.mutation.SetInCompanyID(id)
+	return weuo
+}
+
+// SetNillableInCompanyID sets the "in_company" edge to the Company entity by ID if the given value is not nil.
+func (weuo *WorkExperienceUpdateOne) SetNillableInCompanyID(id *int) *WorkExperienceUpdateOne {
+	if id != nil {
+		weuo = weuo.SetInCompanyID(*id)
 	}
-	return weuo.AddCompanyIDs(ids...)
+	return weuo
+}
+
+// SetInCompany sets the "in_company" edge to the Company entity.
+func (weuo *WorkExperienceUpdateOne) SetInCompany(c *Company) *WorkExperienceUpdateOne {
+	return weuo.SetInCompanyID(c.ID)
+}
+
+// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
+func (weuo *WorkExperienceUpdateOne) AddSkillIDs(ids ...int) *WorkExperienceUpdateOne {
+	weuo.mutation.AddSkillIDs(ids...)
+	return weuo
+}
+
+// AddSkills adds the "skills" edges to the Skill entity.
+func (weuo *WorkExperienceUpdateOne) AddSkills(s ...*Skill) *WorkExperienceUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return weuo.AddSkillIDs(ids...)
 }
 
 // Mutation returns the WorkExperienceMutation object of the builder.
@@ -517,46 +571,37 @@ func (weuo *WorkExperienceUpdateOne) Mutation() *WorkExperienceMutation {
 	return weuo.mutation
 }
 
-// ClearUser clears all "user" edges to the User entity.
-func (weuo *WorkExperienceUpdateOne) ClearUser() *WorkExperienceUpdateOne {
-	weuo.mutation.ClearUser()
+// ClearOwner clears the "owner" edge to the User entity.
+func (weuo *WorkExperienceUpdateOne) ClearOwner() *WorkExperienceUpdateOne {
+	weuo.mutation.ClearOwner()
 	return weuo
 }
 
-// RemoveUserIDs removes the "user" edge to User entities by IDs.
-func (weuo *WorkExperienceUpdateOne) RemoveUserIDs(ids ...int) *WorkExperienceUpdateOne {
-	weuo.mutation.RemoveUserIDs(ids...)
+// ClearInCompany clears the "in_company" edge to the Company entity.
+func (weuo *WorkExperienceUpdateOne) ClearInCompany() *WorkExperienceUpdateOne {
+	weuo.mutation.ClearInCompany()
 	return weuo
 }
 
-// RemoveUser removes "user" edges to User entities.
-func (weuo *WorkExperienceUpdateOne) RemoveUser(u ...*User) *WorkExperienceUpdateOne {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// ClearSkills clears all "skills" edges to the Skill entity.
+func (weuo *WorkExperienceUpdateOne) ClearSkills() *WorkExperienceUpdateOne {
+	weuo.mutation.ClearSkills()
+	return weuo
+}
+
+// RemoveSkillIDs removes the "skills" edge to Skill entities by IDs.
+func (weuo *WorkExperienceUpdateOne) RemoveSkillIDs(ids ...int) *WorkExperienceUpdateOne {
+	weuo.mutation.RemoveSkillIDs(ids...)
+	return weuo
+}
+
+// RemoveSkills removes "skills" edges to Skill entities.
+func (weuo *WorkExperienceUpdateOne) RemoveSkills(s ...*Skill) *WorkExperienceUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return weuo.RemoveUserIDs(ids...)
-}
-
-// ClearCompany clears all "company" edges to the Company entity.
-func (weuo *WorkExperienceUpdateOne) ClearCompany() *WorkExperienceUpdateOne {
-	weuo.mutation.ClearCompany()
-	return weuo
-}
-
-// RemoveCompanyIDs removes the "company" edge to Company entities by IDs.
-func (weuo *WorkExperienceUpdateOne) RemoveCompanyIDs(ids ...int) *WorkExperienceUpdateOne {
-	weuo.mutation.RemoveCompanyIDs(ids...)
-	return weuo
-}
-
-// RemoveCompany removes "company" edges to Company entities.
-func (weuo *WorkExperienceUpdateOne) RemoveCompany(c ...*Company) *WorkExperienceUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return weuo.RemoveCompanyIDs(ids...)
+	return weuo.RemoveSkillIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -716,12 +761,12 @@ func (weuo *WorkExperienceUpdateOne) sqlSave(ctx context.Context) (_node *WorkEx
 			Column: workexperience.FieldDescription,
 		})
 	}
-	if weuo.mutation.UserCleared() {
+	if weuo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   workexperience.UserTable,
-			Columns: workexperience.UserPrimaryKey,
+			Table:   workexperience.OwnerTable,
+			Columns: []string{workexperience.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -732,31 +777,12 @@ func (weuo *WorkExperienceUpdateOne) sqlSave(ctx context.Context) (_node *WorkEx
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := weuo.mutation.RemovedUserIDs(); len(nodes) > 0 && !weuo.mutation.UserCleared() {
+	if nodes := weuo.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   workexperience.UserTable,
-			Columns: workexperience.UserPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := weuo.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   workexperience.UserTable,
-			Columns: workexperience.UserPrimaryKey,
+			Table:   workexperience.OwnerTable,
+			Columns: []string{workexperience.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -770,12 +796,12 @@ func (weuo *WorkExperienceUpdateOne) sqlSave(ctx context.Context) (_node *WorkEx
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if weuo.mutation.CompanyCleared() {
+	if weuo.mutation.InCompanyCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   workexperience.CompanyTable,
-			Columns: workexperience.CompanyPrimaryKey,
+			Table:   workexperience.InCompanyTable,
+			Columns: []string{workexperience.InCompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -786,12 +812,12 @@ func (weuo *WorkExperienceUpdateOne) sqlSave(ctx context.Context) (_node *WorkEx
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := weuo.mutation.RemovedCompanyIDs(); len(nodes) > 0 && !weuo.mutation.CompanyCleared() {
+	if nodes := weuo.mutation.InCompanyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   workexperience.CompanyTable,
-			Columns: workexperience.CompanyPrimaryKey,
+			Table:   workexperience.InCompanyTable,
+			Columns: []string{workexperience.InCompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -803,19 +829,54 @@ func (weuo *WorkExperienceUpdateOne) sqlSave(ctx context.Context) (_node *WorkEx
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := weuo.mutation.CompanyIDs(); len(nodes) > 0 {
+	if weuo.mutation.SkillsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   workexperience.CompanyTable,
-			Columns: workexperience.CompanyPrimaryKey,
+			Table:   workexperience.SkillsTable,
+			Columns: workexperience.SkillsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: company.FieldID,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := weuo.mutation.RemovedSkillsIDs(); len(nodes) > 0 && !weuo.mutation.SkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   workexperience.SkillsTable,
+			Columns: workexperience.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := weuo.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   workexperience.SkillsTable,
+			Columns: workexperience.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
 				},
 			},
 		}

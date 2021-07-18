@@ -868,7 +868,7 @@ func HasStaffs() predicate.Company {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(StaffsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, StaffsTable, StaffsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, StaffsTable, StaffsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -880,7 +880,7 @@ func HasStaffsWith(preds ...predicate.WorkExperience) predicate.Company {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(StaffsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, StaffsTable, StaffsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, StaffsTable, StaffsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

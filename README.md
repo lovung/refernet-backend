@@ -67,7 +67,6 @@ Table skills {
   name varchar
   dark_logo_url varchar
   light_logo_url varchar
-  parent_id varchar [ref: > skills.id]
 }
 
 
@@ -75,7 +74,7 @@ Table work_experiences_skills {
   id varchar [pk]
   skill_id varchar [ref: > skills.id]
   work_experience_id varchar [ref: > work_experiences.id]
-  percent int
+  // percent int
 }
 
 // Phase 2: Chat feature

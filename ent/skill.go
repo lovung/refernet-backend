@@ -26,6 +26,27 @@ type Skill struct {
 	DarkLogoURL string `json:"dark_logo_url,omitempty"`
 	// LightLogoURL holds the value of the "light_logo_url" field.
 	LightLogoURL string `json:"light_logo_url,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SkillQuery when eager-loading is set.
+	Edges SkillEdges `json:"edges"`
+}
+
+// SkillEdges holds the relations/edges for other nodes in the graph.
+type SkillEdges struct {
+	// Experiences holds the value of the experiences edge.
+	Experiences []*WorkExperience `json:"experiences,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// ExperiencesOrErr returns the Experiences value or an error if the edge
+// was not loaded in eager-loading.
+func (e SkillEdges) ExperiencesOrErr() ([]*WorkExperience, error) {
+	if e.loadedTypes[0] {
+		return e.Experiences, nil
+	}
+	return nil, &NotLoadedError{edge: "experiences"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -93,6 +114,11 @@ func (s *Skill) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryExperiences queries the "experiences" edge of the Skill entity.
+func (s *Skill) QueryExperiences() *WorkExperienceQuery {
+	return (&SkillClient{config: s.config}).QueryExperiences(s)
 }
 
 // Update returns a builder for updating this Skill.

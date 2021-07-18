@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -31,5 +32,7 @@ func (Skill) Fields() []ent.Field {
 
 // Edges of the Skill.
 func (Skill) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("experiences", WorkExperience.Type),
+	}
 }

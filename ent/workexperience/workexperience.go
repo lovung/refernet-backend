@@ -25,22 +25,33 @@ const (
 	FieldEndDate = "end_date"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// EdgeUser holds the string denoting the user edge name in mutations.
-	EdgeUser = "user"
-	// EdgeCompany holds the string denoting the company edge name in mutations.
-	EdgeCompany = "company"
+	// EdgeOwner holds the string denoting the owner edge name in mutations.
+	EdgeOwner = "owner"
+	// EdgeInCompany holds the string denoting the in_company edge name in mutations.
+	EdgeInCompany = "in_company"
+	// EdgeSkills holds the string denoting the skills edge name in mutations.
+	EdgeSkills = "skills"
 	// Table holds the table name of the workexperience in the database.
 	Table = "work_experiences"
-	// UserTable is the table the holds the user relation/edge. The primary key declared below.
-	UserTable = "user_experiences"
-	// UserInverseTable is the table name for the User entity.
+	// OwnerTable is the table the holds the owner relation/edge.
+	OwnerTable = "work_experiences"
+	// OwnerInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UserInverseTable = "users"
-	// CompanyTable is the table the holds the company relation/edge. The primary key declared below.
-	CompanyTable = "company_staffs"
-	// CompanyInverseTable is the table name for the Company entity.
+	OwnerInverseTable = "users"
+	// OwnerColumn is the table column denoting the owner relation/edge.
+	OwnerColumn = "user_experiences"
+	// InCompanyTable is the table the holds the in_company relation/edge.
+	InCompanyTable = "work_experiences"
+	// InCompanyInverseTable is the table name for the Company entity.
 	// It exists in this package in order to avoid circular dependency with the "company" package.
-	CompanyInverseTable = "companies"
+	InCompanyInverseTable = "companies"
+	// InCompanyColumn is the table column denoting the in_company relation/edge.
+	InCompanyColumn = "company_staffs"
+	// SkillsTable is the table the holds the skills relation/edge. The primary key declared below.
+	SkillsTable = "skill_experiences"
+	// SkillsInverseTable is the table name for the Skill entity.
+	// It exists in this package in order to avoid circular dependency with the "skill" package.
+	SkillsInverseTable = "skills"
 )
 
 // Columns holds all SQL columns for workexperience fields.
@@ -55,19 +66,28 @@ var Columns = []string{
 	FieldDescription,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "work_experiences"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"company_staffs",
+	"user_experiences",
+}
+
 var (
-	// UserPrimaryKey and UserColumn2 are the table columns denoting the
-	// primary key for the user relation (M2M).
-	UserPrimaryKey = []string{"user_id", "work_experience_id"}
-	// CompanyPrimaryKey and CompanyColumn2 are the table columns denoting the
-	// primary key for the company relation (M2M).
-	CompanyPrimaryKey = []string{"company_id", "work_experience_id"}
+	// SkillsPrimaryKey and SkillsColumn2 are the table columns denoting the
+	// primary key for the skills relation (M2M).
+	SkillsPrimaryKey = []string{"skill_id", "work_experience_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

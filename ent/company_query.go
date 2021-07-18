@@ -78,7 +78,7 @@ func (cq *CompanyQuery) QueryStaffs() *WorkExperienceQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(company.Table, company.FieldID, selector),
 			sqlgraph.To(workexperience.Table, workexperience.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, company.StaffsTable, company.StaffsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, company.StaffsTable, company.StaffsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -376,66 +376,30 @@ func (cq *CompanyQuery) sqlAll(ctx context.Context) ([]*Company, error) {
 
 	if query := cq.withStaffs; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[int]*Company, len(nodes))
-		for _, node := range nodes {
-			ids[node.ID] = node
-			fks = append(fks, node.ID)
-			node.Edges.Staffs = []*WorkExperience{}
+		nodeids := make(map[int]*Company)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Staffs = []*WorkExperience{}
 		}
-		var (
-			edgeids []int
-			edges   = make(map[int][]*Company)
-		)
-		_spec := &sqlgraph.EdgeQuerySpec{
-			Edge: &sqlgraph.EdgeSpec{
-				Inverse: false,
-				Table:   company.StaffsTable,
-				Columns: company.StaffsPrimaryKey,
-			},
-			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(company.StaffsPrimaryKey[0], fks...))
-			},
-			ScanValues: func() [2]interface{} {
-				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
-			},
-			Assign: func(out, in interface{}) error {
-				eout, ok := out.(*sql.NullInt64)
-				if !ok || eout == nil {
-					return fmt.Errorf("unexpected id value for edge-out")
-				}
-				ein, ok := in.(*sql.NullInt64)
-				if !ok || ein == nil {
-					return fmt.Errorf("unexpected id value for edge-in")
-				}
-				outValue := int(eout.Int64)
-				inValue := int(ein.Int64)
-				node, ok := ids[outValue]
-				if !ok {
-					return fmt.Errorf("unexpected node id in edges: %v", outValue)
-				}
-				if _, ok := edges[inValue]; !ok {
-					edgeids = append(edgeids, inValue)
-				}
-				edges[inValue] = append(edges[inValue], node)
-				return nil
-			},
-		}
-		if err := sqlgraph.QueryEdges(ctx, cq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "staffs": %w`, err)
-		}
-		query.Where(workexperience.IDIn(edgeids...))
+		query.withFKs = true
+		query.Where(predicate.WorkExperience(func(s *sql.Selector) {
+			s.Where(sql.InValues(company.StaffsColumn, fks...))
+		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := edges[n.ID]
+			fk := n.company_staffs
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "company_staffs" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected "staffs" node returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "company_staffs" returned %v for node %v`, *fk, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.Staffs = append(nodes[i].Edges.Staffs, n)
-			}
+			node.Edges.Staffs = append(node.Edges.Staffs, n)
 		}
 	}
 

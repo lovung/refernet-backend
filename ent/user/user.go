@@ -47,11 +47,13 @@ const (
 	JobsInverseTable = "jobs"
 	// JobsColumn is the table column denoting the jobs relation/edge.
 	JobsColumn = "user_jobs"
-	// ExperiencesTable is the table the holds the experiences relation/edge. The primary key declared below.
-	ExperiencesTable = "user_experiences"
+	// ExperiencesTable is the table the holds the experiences relation/edge.
+	ExperiencesTable = "work_experiences"
 	// ExperiencesInverseTable is the table name for the WorkExperience entity.
 	// It exists in this package in order to avoid circular dependency with the "workexperience" package.
 	ExperiencesInverseTable = "work_experiences"
+	// ExperiencesColumn is the table column denoting the experiences relation/edge.
+	ExperiencesColumn = "user_experiences"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -69,12 +71,6 @@ var Columns = []string{
 	FieldProfilePictureURL,
 	FieldStatus,
 }
-
-var (
-	// ExperiencesPrimaryKey and ExperiencesColumn2 are the table columns denoting the
-	// primary key for the experiences relation (M2M).
-	ExperiencesPrimaryKey = []string{"user_id", "work_experience_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

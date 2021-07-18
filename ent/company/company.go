@@ -34,11 +34,13 @@ const (
 	EdgeStaffs = "staffs"
 	// Table holds the table name of the company in the database.
 	Table = "companies"
-	// StaffsTable is the table the holds the staffs relation/edge. The primary key declared below.
-	StaffsTable = "company_staffs"
+	// StaffsTable is the table the holds the staffs relation/edge.
+	StaffsTable = "work_experiences"
 	// StaffsInverseTable is the table name for the WorkExperience entity.
 	// It exists in this package in order to avoid circular dependency with the "workexperience" package.
 	StaffsInverseTable = "work_experiences"
+	// StaffsColumn is the table column denoting the staffs relation/edge.
+	StaffsColumn = "company_staffs"
 )
 
 // Columns holds all SQL columns for company fields.
@@ -54,12 +56,6 @@ var Columns = []string{
 	FieldSize,
 	FieldFoundedAt,
 }
-
-var (
-	// StaffsPrimaryKey and StaffsColumn2 are the table columns denoting the
-	// primary key for the staffs relation (M2M).
-	StaffsPrimaryKey = []string{"company_id", "work_experience_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

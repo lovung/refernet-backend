@@ -10,6 +10,7 @@ import (
 	"math"
 	"refernet/ent/company"
 	"refernet/ent/predicate"
+	"refernet/ent/skill"
 	"refernet/ent/user"
 	"refernet/ent/workexperience"
 
@@ -28,8 +29,10 @@ type WorkExperienceQuery struct {
 	fields     []string
 	predicates []predicate.WorkExperience
 	// eager-loading edges.
-	withUser    *UserQuery
-	withCompany *CompanyQuery
+	withOwner     *UserQuery
+	withInCompany *CompanyQuery
+	withSkills    *SkillQuery
+	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,8 +69,8 @@ func (weq *WorkExperienceQuery) Order(o ...OrderFunc) *WorkExperienceQuery {
 	return weq
 }
 
-// QueryUser chains the current query on the "user" edge.
-func (weq *WorkExperienceQuery) QueryUser() *UserQuery {
+// QueryOwner chains the current query on the "owner" edge.
+func (weq *WorkExperienceQuery) QueryOwner() *UserQuery {
 	query := &UserQuery{config: weq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := weq.prepareQuery(ctx); err != nil {
@@ -80,7 +83,7 @@ func (weq *WorkExperienceQuery) QueryUser() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(workexperience.Table, workexperience.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, workexperience.UserTable, workexperience.UserPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, workexperience.OwnerTable, workexperience.OwnerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(weq.driver.Dialect(), step)
 		return fromU, nil
@@ -88,8 +91,8 @@ func (weq *WorkExperienceQuery) QueryUser() *UserQuery {
 	return query
 }
 
-// QueryCompany chains the current query on the "company" edge.
-func (weq *WorkExperienceQuery) QueryCompany() *CompanyQuery {
+// QueryInCompany chains the current query on the "in_company" edge.
+func (weq *WorkExperienceQuery) QueryInCompany() *CompanyQuery {
 	query := &CompanyQuery{config: weq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := weq.prepareQuery(ctx); err != nil {
@@ -102,7 +105,29 @@ func (weq *WorkExperienceQuery) QueryCompany() *CompanyQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(workexperience.Table, workexperience.FieldID, selector),
 			sqlgraph.To(company.Table, company.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, workexperience.CompanyTable, workexperience.CompanyPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, workexperience.InCompanyTable, workexperience.InCompanyColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(weq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySkills chains the current query on the "skills" edge.
+func (weq *WorkExperienceQuery) QuerySkills() *SkillQuery {
+	query := &SkillQuery{config: weq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := weq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := weq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workexperience.Table, workexperience.FieldID, selector),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, workexperience.SkillsTable, workexperience.SkillsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(weq.driver.Dialect(), step)
 		return fromU, nil
@@ -286,38 +311,50 @@ func (weq *WorkExperienceQuery) Clone() *WorkExperienceQuery {
 		return nil
 	}
 	return &WorkExperienceQuery{
-		config:      weq.config,
-		limit:       weq.limit,
-		offset:      weq.offset,
-		order:       append([]OrderFunc{}, weq.order...),
-		predicates:  append([]predicate.WorkExperience{}, weq.predicates...),
-		withUser:    weq.withUser.Clone(),
-		withCompany: weq.withCompany.Clone(),
+		config:        weq.config,
+		limit:         weq.limit,
+		offset:        weq.offset,
+		order:         append([]OrderFunc{}, weq.order...),
+		predicates:    append([]predicate.WorkExperience{}, weq.predicates...),
+		withOwner:     weq.withOwner.Clone(),
+		withInCompany: weq.withInCompany.Clone(),
+		withSkills:    weq.withSkills.Clone(),
 		// clone intermediate query.
 		sql:  weq.sql.Clone(),
 		path: weq.path,
 	}
 }
 
-// WithUser tells the query-builder to eager-load the nodes that are connected to
-// the "user" edge. The optional arguments are used to configure the query builder of the edge.
-func (weq *WorkExperienceQuery) WithUser(opts ...func(*UserQuery)) *WorkExperienceQuery {
+// WithOwner tells the query-builder to eager-load the nodes that are connected to
+// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
+func (weq *WorkExperienceQuery) WithOwner(opts ...func(*UserQuery)) *WorkExperienceQuery {
 	query := &UserQuery{config: weq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	weq.withUser = query
+	weq.withOwner = query
 	return weq
 }
 
-// WithCompany tells the query-builder to eager-load the nodes that are connected to
-// the "company" edge. The optional arguments are used to configure the query builder of the edge.
-func (weq *WorkExperienceQuery) WithCompany(opts ...func(*CompanyQuery)) *WorkExperienceQuery {
+// WithInCompany tells the query-builder to eager-load the nodes that are connected to
+// the "in_company" edge. The optional arguments are used to configure the query builder of the edge.
+func (weq *WorkExperienceQuery) WithInCompany(opts ...func(*CompanyQuery)) *WorkExperienceQuery {
 	query := &CompanyQuery{config: weq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	weq.withCompany = query
+	weq.withInCompany = query
+	return weq
+}
+
+// WithSkills tells the query-builder to eager-load the nodes that are connected to
+// the "skills" edge. The optional arguments are used to configure the query builder of the edge.
+func (weq *WorkExperienceQuery) WithSkills(opts ...func(*SkillQuery)) *WorkExperienceQuery {
+	query := &SkillQuery{config: weq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	weq.withSkills = query
 	return weq
 }
 
@@ -385,12 +422,20 @@ func (weq *WorkExperienceQuery) prepareQuery(ctx context.Context) error {
 func (weq *WorkExperienceQuery) sqlAll(ctx context.Context) ([]*WorkExperience, error) {
 	var (
 		nodes       = []*WorkExperience{}
+		withFKs     = weq.withFKs
 		_spec       = weq.querySpec()
-		loadedTypes = [2]bool{
-			weq.withUser != nil,
-			weq.withCompany != nil,
+		loadedTypes = [3]bool{
+			weq.withOwner != nil,
+			weq.withInCompany != nil,
+			weq.withSkills != nil,
 		}
 	)
+	if weq.withOwner != nil || weq.withInCompany != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, workexperience.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &WorkExperience{config: weq.config}
 		nodes = append(nodes, node)
@@ -411,78 +456,71 @@ func (weq *WorkExperienceQuery) sqlAll(ctx context.Context) ([]*WorkExperience, 
 		return nodes, nil
 	}
 
-	if query := weq.withUser; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[int]*WorkExperience, len(nodes))
-		for _, node := range nodes {
-			ids[node.ID] = node
-			fks = append(fks, node.ID)
-			node.Edges.User = []*User{}
+	if query := weq.withOwner; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkExperience)
+		for i := range nodes {
+			if nodes[i].user_experiences == nil {
+				continue
+			}
+			fk := *nodes[i].user_experiences
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
-		var (
-			edgeids []int
-			edges   = make(map[int][]*WorkExperience)
-		)
-		_spec := &sqlgraph.EdgeQuerySpec{
-			Edge: &sqlgraph.EdgeSpec{
-				Inverse: true,
-				Table:   workexperience.UserTable,
-				Columns: workexperience.UserPrimaryKey,
-			},
-			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(workexperience.UserPrimaryKey[1], fks...))
-			},
-			ScanValues: func() [2]interface{} {
-				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
-			},
-			Assign: func(out, in interface{}) error {
-				eout, ok := out.(*sql.NullInt64)
-				if !ok || eout == nil {
-					return fmt.Errorf("unexpected id value for edge-out")
-				}
-				ein, ok := in.(*sql.NullInt64)
-				if !ok || ein == nil {
-					return fmt.Errorf("unexpected id value for edge-in")
-				}
-				outValue := int(eout.Int64)
-				inValue := int(ein.Int64)
-				node, ok := ids[outValue]
-				if !ok {
-					return fmt.Errorf("unexpected node id in edges: %v", outValue)
-				}
-				if _, ok := edges[inValue]; !ok {
-					edgeids = append(edgeids, inValue)
-				}
-				edges[inValue] = append(edges[inValue], node)
-				return nil
-			},
-		}
-		if err := sqlgraph.QueryEdges(ctx, weq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "user": %w`, err)
-		}
-		query.Where(user.IDIn(edgeids...))
+		query.Where(user.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := edges[n.ID]
+			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected "user" node returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_experiences" returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.User = append(nodes[i].Edges.User, n)
+				nodes[i].Edges.Owner = n
 			}
 		}
 	}
 
-	if query := weq.withCompany; query != nil {
+	if query := weq.withInCompany; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkExperience)
+		for i := range nodes {
+			if nodes[i].company_staffs == nil {
+				continue
+			}
+			fk := *nodes[i].company_staffs
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(company.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "company_staffs" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.InCompany = n
+			}
+		}
+	}
+
+	if query := weq.withSkills; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
 		ids := make(map[int]*WorkExperience, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
-			node.Edges.Company = []*Company{}
+			node.Edges.Skills = []*Skill{}
 		}
 		var (
 			edgeids []int
@@ -491,11 +529,11 @@ func (weq *WorkExperienceQuery) sqlAll(ctx context.Context) ([]*WorkExperience, 
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
 				Inverse: true,
-				Table:   workexperience.CompanyTable,
-				Columns: workexperience.CompanyPrimaryKey,
+				Table:   workexperience.SkillsTable,
+				Columns: workexperience.SkillsPrimaryKey,
 			},
 			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(workexperience.CompanyPrimaryKey[1], fks...))
+				s.Where(sql.InValues(workexperience.SkillsPrimaryKey[1], fks...))
 			},
 			ScanValues: func() [2]interface{} {
 				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
@@ -523,9 +561,9 @@ func (weq *WorkExperienceQuery) sqlAll(ctx context.Context) ([]*WorkExperience, 
 			},
 		}
 		if err := sqlgraph.QueryEdges(ctx, weq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "company": %w`, err)
+			return nil, fmt.Errorf(`query edges "skills": %w`, err)
 		}
-		query.Where(company.IDIn(edgeids...))
+		query.Where(skill.IDIn(edgeids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -533,10 +571,10 @@ func (weq *WorkExperienceQuery) sqlAll(ctx context.Context) ([]*WorkExperience, 
 		for _, n := range neighbors {
 			nodes, ok := edges[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected "company" node returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected "skills" node returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.Company = append(nodes[i].Edges.Company, n)
+				nodes[i].Edges.Skills = append(nodes[i].Edges.Skills, n)
 			}
 		}
 	}

@@ -1794,18 +1794,21 @@ func (m *JobMutation) ResetEdge(name string) error {
 // SkillMutation represents an operation that mutates the Skill nodes in the graph.
 type SkillMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	created_at     *time.Time
-	updated_at     *time.Time
-	name           *string
-	dark_logo_url  *string
-	light_logo_url *string
-	clearedFields  map[string]struct{}
-	done           bool
-	oldValue       func(context.Context) (*Skill, error)
-	predicates     []predicate.Skill
+	op                 Op
+	typ                string
+	id                 *int
+	created_at         *time.Time
+	updated_at         *time.Time
+	name               *string
+	dark_logo_url      *string
+	light_logo_url     *string
+	clearedFields      map[string]struct{}
+	experiences        map[int]struct{}
+	removedexperiences map[int]struct{}
+	clearedexperiences bool
+	done               bool
+	oldValue           func(context.Context) (*Skill, error)
+	predicates         []predicate.Skill
 }
 
 var _ ent.Mutation = (*SkillMutation)(nil)
@@ -2067,6 +2070,59 @@ func (m *SkillMutation) ResetLightLogoURL() {
 	m.light_logo_url = nil
 }
 
+// AddExperienceIDs adds the "experiences" edge to the WorkExperience entity by ids.
+func (m *SkillMutation) AddExperienceIDs(ids ...int) {
+	if m.experiences == nil {
+		m.experiences = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.experiences[ids[i]] = struct{}{}
+	}
+}
+
+// ClearExperiences clears the "experiences" edge to the WorkExperience entity.
+func (m *SkillMutation) ClearExperiences() {
+	m.clearedexperiences = true
+}
+
+// ExperiencesCleared reports if the "experiences" edge to the WorkExperience entity was cleared.
+func (m *SkillMutation) ExperiencesCleared() bool {
+	return m.clearedexperiences
+}
+
+// RemoveExperienceIDs removes the "experiences" edge to the WorkExperience entity by IDs.
+func (m *SkillMutation) RemoveExperienceIDs(ids ...int) {
+	if m.removedexperiences == nil {
+		m.removedexperiences = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedexperiences[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedExperiences returns the removed IDs of the "experiences" edge to the WorkExperience entity.
+func (m *SkillMutation) RemovedExperiencesIDs() (ids []int) {
+	for id := range m.removedexperiences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ExperiencesIDs returns the "experiences" edge IDs in the mutation.
+func (m *SkillMutation) ExperiencesIDs() (ids []int) {
+	for id := range m.experiences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetExperiences resets all changes to the "experiences" edge.
+func (m *SkillMutation) ResetExperiences() {
+	m.experiences = nil
+	m.clearedexperiences = false
+	m.removedexperiences = nil
+}
+
 // Op returns the operation name.
 func (m *SkillMutation) Op() Op {
 	return m.op
@@ -2248,49 +2304,85 @@ func (m *SkillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SkillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.experiences != nil {
+		edges = append(edges, skill.EdgeExperiences)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *SkillMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case skill.EdgeExperiences:
+		ids := make([]ent.Value, 0, len(m.experiences))
+		for id := range m.experiences {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SkillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedexperiences != nil {
+		edges = append(edges, skill.EdgeExperiences)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *SkillMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case skill.EdgeExperiences:
+		ids := make([]ent.Value, 0, len(m.removedexperiences))
+		for id := range m.removedexperiences {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SkillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedexperiences {
+		edges = append(edges, skill.EdgeExperiences)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *SkillMutation) EdgeCleared(name string) bool {
+	switch name {
+	case skill.EdgeExperiences:
+		return m.clearedexperiences
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *SkillMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Skill unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *SkillMutation) ResetEdge(name string) error {
+	switch name {
+	case skill.EdgeExperiences:
+		m.ResetExperiences()
+		return nil
+	}
 	return fmt.Errorf("unknown Skill edge %s", name)
 }
 
@@ -3298,26 +3390,27 @@ func (m *UserMutation) ResetEdge(name string) error {
 // WorkExperienceMutation represents an operation that mutates the WorkExperience nodes in the graph.
 type WorkExperienceMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	created_at     *time.Time
-	updated_at     *time.Time
-	title          *string
-	location       *string
-	start_date     *time.Time
-	end_date       *time.Time
-	description    *string
-	clearedFields  map[string]struct{}
-	user           map[int]struct{}
-	removeduser    map[int]struct{}
-	cleareduser    bool
-	company        map[int]struct{}
-	removedcompany map[int]struct{}
-	clearedcompany bool
-	done           bool
-	oldValue       func(context.Context) (*WorkExperience, error)
-	predicates     []predicate.WorkExperience
+	op                Op
+	typ               string
+	id                *int
+	created_at        *time.Time
+	updated_at        *time.Time
+	title             *string
+	location          *string
+	start_date        *time.Time
+	end_date          *time.Time
+	description       *string
+	clearedFields     map[string]struct{}
+	owner             *int
+	clearedowner      bool
+	in_company        *int
+	clearedin_company bool
+	skills            map[int]struct{}
+	removedskills     map[int]struct{}
+	clearedskills     bool
+	done              bool
+	oldValue          func(context.Context) (*WorkExperience, error)
+	predicates        []predicate.WorkExperience
 }
 
 var _ ent.Mutation = (*WorkExperienceMutation)(nil)
@@ -3664,110 +3757,135 @@ func (m *WorkExperienceMutation) ResetDescription() {
 	m.description = nil
 }
 
-// AddUserIDs adds the "user" edge to the User entity by ids.
-func (m *WorkExperienceMutation) AddUserIDs(ids ...int) {
-	if m.user == nil {
-		m.user = make(map[int]struct{})
+// SetOwnerID sets the "owner" edge to the User entity by id.
+func (m *WorkExperienceMutation) SetOwnerID(id int) {
+	m.owner = &id
+}
+
+// ClearOwner clears the "owner" edge to the User entity.
+func (m *WorkExperienceMutation) ClearOwner() {
+	m.clearedowner = true
+}
+
+// OwnerCleared reports if the "owner" edge to the User entity was cleared.
+func (m *WorkExperienceMutation) OwnerCleared() bool {
+	return m.clearedowner
+}
+
+// OwnerID returns the "owner" edge ID in the mutation.
+func (m *WorkExperienceMutation) OwnerID() (id int, exists bool) {
+	if m.owner != nil {
+		return *m.owner, true
+	}
+	return
+}
+
+// OwnerIDs returns the "owner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OwnerID instead. It exists only for internal usage by the builders.
+func (m *WorkExperienceMutation) OwnerIDs() (ids []int) {
+	if id := m.owner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOwner resets all changes to the "owner" edge.
+func (m *WorkExperienceMutation) ResetOwner() {
+	m.owner = nil
+	m.clearedowner = false
+}
+
+// SetInCompanyID sets the "in_company" edge to the Company entity by id.
+func (m *WorkExperienceMutation) SetInCompanyID(id int) {
+	m.in_company = &id
+}
+
+// ClearInCompany clears the "in_company" edge to the Company entity.
+func (m *WorkExperienceMutation) ClearInCompany() {
+	m.clearedin_company = true
+}
+
+// InCompanyCleared reports if the "in_company" edge to the Company entity was cleared.
+func (m *WorkExperienceMutation) InCompanyCleared() bool {
+	return m.clearedin_company
+}
+
+// InCompanyID returns the "in_company" edge ID in the mutation.
+func (m *WorkExperienceMutation) InCompanyID() (id int, exists bool) {
+	if m.in_company != nil {
+		return *m.in_company, true
+	}
+	return
+}
+
+// InCompanyIDs returns the "in_company" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// InCompanyID instead. It exists only for internal usage by the builders.
+func (m *WorkExperienceMutation) InCompanyIDs() (ids []int) {
+	if id := m.in_company; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetInCompany resets all changes to the "in_company" edge.
+func (m *WorkExperienceMutation) ResetInCompany() {
+	m.in_company = nil
+	m.clearedin_company = false
+}
+
+// AddSkillIDs adds the "skills" edge to the Skill entity by ids.
+func (m *WorkExperienceMutation) AddSkillIDs(ids ...int) {
+	if m.skills == nil {
+		m.skills = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.user[ids[i]] = struct{}{}
+		m.skills[ids[i]] = struct{}{}
 	}
 }
 
-// ClearUser clears the "user" edge to the User entity.
-func (m *WorkExperienceMutation) ClearUser() {
-	m.cleareduser = true
+// ClearSkills clears the "skills" edge to the Skill entity.
+func (m *WorkExperienceMutation) ClearSkills() {
+	m.clearedskills = true
 }
 
-// UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *WorkExperienceMutation) UserCleared() bool {
-	return m.cleareduser
+// SkillsCleared reports if the "skills" edge to the Skill entity was cleared.
+func (m *WorkExperienceMutation) SkillsCleared() bool {
+	return m.clearedskills
 }
 
-// RemoveUserIDs removes the "user" edge to the User entity by IDs.
-func (m *WorkExperienceMutation) RemoveUserIDs(ids ...int) {
-	if m.removeduser == nil {
-		m.removeduser = make(map[int]struct{})
+// RemoveSkillIDs removes the "skills" edge to the Skill entity by IDs.
+func (m *WorkExperienceMutation) RemoveSkillIDs(ids ...int) {
+	if m.removedskills == nil {
+		m.removedskills = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.removeduser[ids[i]] = struct{}{}
+		m.removedskills[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedUser returns the removed IDs of the "user" edge to the User entity.
-func (m *WorkExperienceMutation) RemovedUserIDs() (ids []int) {
-	for id := range m.removeduser {
+// RemovedSkills returns the removed IDs of the "skills" edge to the Skill entity.
+func (m *WorkExperienceMutation) RemovedSkillsIDs() (ids []int) {
+	for id := range m.removedskills {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// UserIDs returns the "user" edge IDs in the mutation.
-func (m *WorkExperienceMutation) UserIDs() (ids []int) {
-	for id := range m.user {
+// SkillsIDs returns the "skills" edge IDs in the mutation.
+func (m *WorkExperienceMutation) SkillsIDs() (ids []int) {
+	for id := range m.skills {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetUser resets all changes to the "user" edge.
-func (m *WorkExperienceMutation) ResetUser() {
-	m.user = nil
-	m.cleareduser = false
-	m.removeduser = nil
-}
-
-// AddCompanyIDs adds the "company" edge to the Company entity by ids.
-func (m *WorkExperienceMutation) AddCompanyIDs(ids ...int) {
-	if m.company == nil {
-		m.company = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.company[ids[i]] = struct{}{}
-	}
-}
-
-// ClearCompany clears the "company" edge to the Company entity.
-func (m *WorkExperienceMutation) ClearCompany() {
-	m.clearedcompany = true
-}
-
-// CompanyCleared reports if the "company" edge to the Company entity was cleared.
-func (m *WorkExperienceMutation) CompanyCleared() bool {
-	return m.clearedcompany
-}
-
-// RemoveCompanyIDs removes the "company" edge to the Company entity by IDs.
-func (m *WorkExperienceMutation) RemoveCompanyIDs(ids ...int) {
-	if m.removedcompany == nil {
-		m.removedcompany = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.removedcompany[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedCompany returns the removed IDs of the "company" edge to the Company entity.
-func (m *WorkExperienceMutation) RemovedCompanyIDs() (ids []int) {
-	for id := range m.removedcompany {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// CompanyIDs returns the "company" edge IDs in the mutation.
-func (m *WorkExperienceMutation) CompanyIDs() (ids []int) {
-	for id := range m.company {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetCompany resets all changes to the "company" edge.
-func (m *WorkExperienceMutation) ResetCompany() {
-	m.company = nil
-	m.clearedcompany = false
-	m.removedcompany = nil
+// ResetSkills resets all changes to the "skills" edge.
+func (m *WorkExperienceMutation) ResetSkills() {
+	m.skills = nil
+	m.clearedskills = false
+	m.removedskills = nil
 }
 
 // Op returns the operation name.
@@ -3994,12 +4112,15 @@ func (m *WorkExperienceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *WorkExperienceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.user != nil {
-		edges = append(edges, workexperience.EdgeUser)
+	edges := make([]string, 0, 3)
+	if m.owner != nil {
+		edges = append(edges, workexperience.EdgeOwner)
 	}
-	if m.company != nil {
-		edges = append(edges, workexperience.EdgeCompany)
+	if m.in_company != nil {
+		edges = append(edges, workexperience.EdgeInCompany)
+	}
+	if m.skills != nil {
+		edges = append(edges, workexperience.EdgeSkills)
 	}
 	return edges
 }
@@ -4008,15 +4129,17 @@ func (m *WorkExperienceMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *WorkExperienceMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case workexperience.EdgeUser:
-		ids := make([]ent.Value, 0, len(m.user))
-		for id := range m.user {
-			ids = append(ids, id)
+	case workexperience.EdgeOwner:
+		if id := m.owner; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
-	case workexperience.EdgeCompany:
-		ids := make([]ent.Value, 0, len(m.company))
-		for id := range m.company {
+	case workexperience.EdgeInCompany:
+		if id := m.in_company; id != nil {
+			return []ent.Value{*id}
+		}
+	case workexperience.EdgeSkills:
+		ids := make([]ent.Value, 0, len(m.skills))
+		for id := range m.skills {
 			ids = append(ids, id)
 		}
 		return ids
@@ -4026,12 +4149,9 @@ func (m *WorkExperienceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *WorkExperienceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removeduser != nil {
-		edges = append(edges, workexperience.EdgeUser)
-	}
-	if m.removedcompany != nil {
-		edges = append(edges, workexperience.EdgeCompany)
+	edges := make([]string, 0, 3)
+	if m.removedskills != nil {
+		edges = append(edges, workexperience.EdgeSkills)
 	}
 	return edges
 }
@@ -4040,15 +4160,9 @@ func (m *WorkExperienceMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *WorkExperienceMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case workexperience.EdgeUser:
-		ids := make([]ent.Value, 0, len(m.removeduser))
-		for id := range m.removeduser {
-			ids = append(ids, id)
-		}
-		return ids
-	case workexperience.EdgeCompany:
-		ids := make([]ent.Value, 0, len(m.removedcompany))
-		for id := range m.removedcompany {
+	case workexperience.EdgeSkills:
+		ids := make([]ent.Value, 0, len(m.removedskills))
+		for id := range m.removedskills {
 			ids = append(ids, id)
 		}
 		return ids
@@ -4058,12 +4172,15 @@ func (m *WorkExperienceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *WorkExperienceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.cleareduser {
-		edges = append(edges, workexperience.EdgeUser)
+	edges := make([]string, 0, 3)
+	if m.clearedowner {
+		edges = append(edges, workexperience.EdgeOwner)
 	}
-	if m.clearedcompany {
-		edges = append(edges, workexperience.EdgeCompany)
+	if m.clearedin_company {
+		edges = append(edges, workexperience.EdgeInCompany)
+	}
+	if m.clearedskills {
+		edges = append(edges, workexperience.EdgeSkills)
 	}
 	return edges
 }
@@ -4072,10 +4189,12 @@ func (m *WorkExperienceMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *WorkExperienceMutation) EdgeCleared(name string) bool {
 	switch name {
-	case workexperience.EdgeUser:
-		return m.cleareduser
-	case workexperience.EdgeCompany:
-		return m.clearedcompany
+	case workexperience.EdgeOwner:
+		return m.clearedowner
+	case workexperience.EdgeInCompany:
+		return m.clearedin_company
+	case workexperience.EdgeSkills:
+		return m.clearedskills
 	}
 	return false
 }
@@ -4084,6 +4203,12 @@ func (m *WorkExperienceMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *WorkExperienceMutation) ClearEdge(name string) error {
 	switch name {
+	case workexperience.EdgeOwner:
+		m.ClearOwner()
+		return nil
+	case workexperience.EdgeInCompany:
+		m.ClearInCompany()
+		return nil
 	}
 	return fmt.Errorf("unknown WorkExperience unique edge %s", name)
 }
@@ -4092,11 +4217,14 @@ func (m *WorkExperienceMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *WorkExperienceMutation) ResetEdge(name string) error {
 	switch name {
-	case workexperience.EdgeUser:
-		m.ResetUser()
+	case workexperience.EdgeOwner:
+		m.ResetOwner()
 		return nil
-	case workexperience.EdgeCompany:
-		m.ResetCompany()
+	case workexperience.EdgeInCompany:
+		m.ResetInCompany()
+		return nil
+	case workexperience.EdgeSkills:
+		m.ResetSkills()
 		return nil
 	}
 	return fmt.Errorf("unknown WorkExperience edge %s", name)

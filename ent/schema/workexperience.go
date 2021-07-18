@@ -34,9 +34,13 @@ func (WorkExperience) Fields() []ent.Field {
 // Edges of the WorkExperience.
 func (WorkExperience) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user", User.Type).
+		edge.From("owner", User.Type).
+			Ref("experiences").
+			Unique(),
+		edge.From("in_company", Company.Type).
+			Ref("staffs").
+			Unique(),
+		edge.From("skills", Skill.Type).
 			Ref("experiences"),
-		edge.From("company", Company.Type).
-			Ref("staffs"),
 	}
 }

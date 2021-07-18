@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"refernet/ent/company"
+	"refernet/ent/skill"
 	"refernet/ent/user"
 	"refernet/ent/workexperience"
 	"time"
@@ -88,34 +89,57 @@ func (wec *WorkExperienceCreate) SetDescription(s string) *WorkExperienceCreate 
 	return wec
 }
 
-// AddUserIDs adds the "user" edge to the User entity by IDs.
-func (wec *WorkExperienceCreate) AddUserIDs(ids ...int) *WorkExperienceCreate {
-	wec.mutation.AddUserIDs(ids...)
+// SetOwnerID sets the "owner" edge to the User entity by ID.
+func (wec *WorkExperienceCreate) SetOwnerID(id int) *WorkExperienceCreate {
+	wec.mutation.SetOwnerID(id)
 	return wec
 }
 
-// AddUser adds the "user" edges to the User entity.
-func (wec *WorkExperienceCreate) AddUser(u ...*User) *WorkExperienceCreate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
+func (wec *WorkExperienceCreate) SetNillableOwnerID(id *int) *WorkExperienceCreate {
+	if id != nil {
+		wec = wec.SetOwnerID(*id)
 	}
-	return wec.AddUserIDs(ids...)
-}
-
-// AddCompanyIDs adds the "company" edge to the Company entity by IDs.
-func (wec *WorkExperienceCreate) AddCompanyIDs(ids ...int) *WorkExperienceCreate {
-	wec.mutation.AddCompanyIDs(ids...)
 	return wec
 }
 
-// AddCompany adds the "company" edges to the Company entity.
-func (wec *WorkExperienceCreate) AddCompany(c ...*Company) *WorkExperienceCreate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+// SetOwner sets the "owner" edge to the User entity.
+func (wec *WorkExperienceCreate) SetOwner(u *User) *WorkExperienceCreate {
+	return wec.SetOwnerID(u.ID)
+}
+
+// SetInCompanyID sets the "in_company" edge to the Company entity by ID.
+func (wec *WorkExperienceCreate) SetInCompanyID(id int) *WorkExperienceCreate {
+	wec.mutation.SetInCompanyID(id)
+	return wec
+}
+
+// SetNillableInCompanyID sets the "in_company" edge to the Company entity by ID if the given value is not nil.
+func (wec *WorkExperienceCreate) SetNillableInCompanyID(id *int) *WorkExperienceCreate {
+	if id != nil {
+		wec = wec.SetInCompanyID(*id)
 	}
-	return wec.AddCompanyIDs(ids...)
+	return wec
+}
+
+// SetInCompany sets the "in_company" edge to the Company entity.
+func (wec *WorkExperienceCreate) SetInCompany(c *Company) *WorkExperienceCreate {
+	return wec.SetInCompanyID(c.ID)
+}
+
+// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
+func (wec *WorkExperienceCreate) AddSkillIDs(ids ...int) *WorkExperienceCreate {
+	wec.mutation.AddSkillIDs(ids...)
+	return wec
+}
+
+// AddSkills adds the "skills" edges to the Skill entity.
+func (wec *WorkExperienceCreate) AddSkills(s ...*Skill) *WorkExperienceCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return wec.AddSkillIDs(ids...)
 }
 
 // Mutation returns the WorkExperienceMutation object of the builder.
@@ -288,12 +312,12 @@ func (wec *WorkExperienceCreate) createSpec() (*WorkExperience, *sqlgraph.Create
 		})
 		_node.Description = value
 	}
-	if nodes := wec.mutation.UserIDs(); len(nodes) > 0 {
+	if nodes := wec.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   workexperience.UserTable,
-			Columns: workexperience.UserPrimaryKey,
+			Table:   workexperience.OwnerTable,
+			Columns: []string{workexperience.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -305,19 +329,40 @@ func (wec *WorkExperienceCreate) createSpec() (*WorkExperience, *sqlgraph.Create
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.user_experiences = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := wec.mutation.CompanyIDs(); len(nodes) > 0 {
+	if nodes := wec.mutation.InCompanyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   workexperience.CompanyTable,
-			Columns: workexperience.CompanyPrimaryKey,
+			Table:   workexperience.InCompanyTable,
+			Columns: []string{workexperience.InCompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: company.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.company_staffs = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wec.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   workexperience.SkillsTable,
+			Columns: workexperience.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
 				},
 			},
 		}

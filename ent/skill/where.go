@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -609,6 +610,34 @@ func LightLogoURLEqualFold(v string) predicate.Skill {
 func LightLogoURLContainsFold(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldLightLogoURL), v))
+	})
+}
+
+// HasExperiences applies the HasEdge predicate on the "experiences" edge.
+func HasExperiences() predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ExperiencesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, ExperiencesTable, ExperiencesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasExperiencesWith applies the HasEdge predicate on the "experiences" edge with a given conditions (other predicates).
+func HasExperiencesWith(preds ...predicate.WorkExperience) predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ExperiencesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, ExperiencesTable, ExperiencesPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

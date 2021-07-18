@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"refernet/ent/predicate"
 	"refernet/ent/skill"
+	"refernet/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -75,9 +76,45 @@ func (su *SkillUpdate) SetNillableLightLogoURL(s *string) *SkillUpdate {
 	return su
 }
 
+// AddExperienceIDs adds the "experiences" edge to the WorkExperience entity by IDs.
+func (su *SkillUpdate) AddExperienceIDs(ids ...int) *SkillUpdate {
+	su.mutation.AddExperienceIDs(ids...)
+	return su
+}
+
+// AddExperiences adds the "experiences" edges to the WorkExperience entity.
+func (su *SkillUpdate) AddExperiences(w ...*WorkExperience) *SkillUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return su.AddExperienceIDs(ids...)
+}
+
 // Mutation returns the SkillMutation object of the builder.
 func (su *SkillUpdate) Mutation() *SkillMutation {
 	return su.mutation
+}
+
+// ClearExperiences clears all "experiences" edges to the WorkExperience entity.
+func (su *SkillUpdate) ClearExperiences() *SkillUpdate {
+	su.mutation.ClearExperiences()
+	return su
+}
+
+// RemoveExperienceIDs removes the "experiences" edge to WorkExperience entities by IDs.
+func (su *SkillUpdate) RemoveExperienceIDs(ids ...int) *SkillUpdate {
+	su.mutation.RemoveExperienceIDs(ids...)
+	return su
+}
+
+// RemoveExperiences removes "experiences" edges to WorkExperience entities.
+func (su *SkillUpdate) RemoveExperiences(w ...*WorkExperience) *SkillUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return su.RemoveExperienceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -193,6 +230,60 @@ func (su *SkillUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: skill.FieldLightLogoURL,
 		})
 	}
+	if su.mutation.ExperiencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.ExperiencesTable,
+			Columns: skill.ExperiencesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedExperiencesIDs(); len(nodes) > 0 && !su.mutation.ExperiencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.ExperiencesTable,
+			Columns: skill.ExperiencesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.ExperiencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.ExperiencesTable,
+			Columns: skill.ExperiencesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{skill.Label}
@@ -260,9 +351,45 @@ func (suo *SkillUpdateOne) SetNillableLightLogoURL(s *string) *SkillUpdateOne {
 	return suo
 }
 
+// AddExperienceIDs adds the "experiences" edge to the WorkExperience entity by IDs.
+func (suo *SkillUpdateOne) AddExperienceIDs(ids ...int) *SkillUpdateOne {
+	suo.mutation.AddExperienceIDs(ids...)
+	return suo
+}
+
+// AddExperiences adds the "experiences" edges to the WorkExperience entity.
+func (suo *SkillUpdateOne) AddExperiences(w ...*WorkExperience) *SkillUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return suo.AddExperienceIDs(ids...)
+}
+
 // Mutation returns the SkillMutation object of the builder.
 func (suo *SkillUpdateOne) Mutation() *SkillMutation {
 	return suo.mutation
+}
+
+// ClearExperiences clears all "experiences" edges to the WorkExperience entity.
+func (suo *SkillUpdateOne) ClearExperiences() *SkillUpdateOne {
+	suo.mutation.ClearExperiences()
+	return suo
+}
+
+// RemoveExperienceIDs removes the "experiences" edge to WorkExperience entities by IDs.
+func (suo *SkillUpdateOne) RemoveExperienceIDs(ids ...int) *SkillUpdateOne {
+	suo.mutation.RemoveExperienceIDs(ids...)
+	return suo
+}
+
+// RemoveExperiences removes "experiences" edges to WorkExperience entities.
+func (suo *SkillUpdateOne) RemoveExperiences(w ...*WorkExperience) *SkillUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return suo.RemoveExperienceIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -401,6 +528,60 @@ func (suo *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error
 			Value:  value,
 			Column: skill.FieldLightLogoURL,
 		})
+	}
+	if suo.mutation.ExperiencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.ExperiencesTable,
+			Columns: skill.ExperiencesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedExperiencesIDs(); len(nodes) > 0 && !suo.mutation.ExperiencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.ExperiencesTable,
+			Columns: skill.ExperiencesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.ExperiencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.ExperiencesTable,
+			Columns: skill.ExperiencesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Skill{config: suo.config}
 	_spec.Assign = _node.assignValues

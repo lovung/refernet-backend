@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"refernet/ent/skill"
+	"refernet/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -80,6 +81,21 @@ func (sc *SkillCreate) SetNillableLightLogoURL(s *string) *SkillCreate {
 		sc.SetLightLogoURL(*s)
 	}
 	return sc
+}
+
+// AddExperienceIDs adds the "experiences" edge to the WorkExperience entity by IDs.
+func (sc *SkillCreate) AddExperienceIDs(ids ...int) *SkillCreate {
+	sc.mutation.AddExperienceIDs(ids...)
+	return sc
+}
+
+// AddExperiences adds the "experiences" edges to the WorkExperience entity.
+func (sc *SkillCreate) AddExperiences(w ...*WorkExperience) *SkillCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return sc.AddExperienceIDs(ids...)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -240,6 +256,25 @@ func (sc *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 			Column: skill.FieldLightLogoURL,
 		})
 		_node.LightLogoURL = value
+	}
+	if nodes := sc.mutation.ExperiencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.ExperiencesTable,
+			Columns: skill.ExperiencesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
