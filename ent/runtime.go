@@ -31,7 +31,7 @@ func init() {
 	// company.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	company.NameValidator = companyDescName.Validators[0].(func(string) error)
 	// companyDescFoundedAt is the schema descriptor for founded_at field.
-	companyDescFoundedAt := companyFields[8].Descriptor()
+	companyDescFoundedAt := companyFields[9].Descriptor()
 	// company.FoundedAtValidator is a validator for the "founded_at" field. It is called by the builders before save.
 	company.FoundedAtValidator = companyDescFoundedAt.Validators[0].(func(int) error)
 	jobFields := schema.Job{}.Fields()

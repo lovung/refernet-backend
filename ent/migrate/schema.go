@@ -17,6 +17,7 @@ var (
 		{Name: "overview", Type: field.TypeString, Size: 2147483647},
 		{Name: "website", Type: field.TypeString},
 		{Name: "industry", Type: field.TypeJSON},
+		{Name: "location", Type: field.TypeJSON},
 		{Name: "logo_url", Type: field.TypeString},
 		{Name: "size", Type: field.TypeEnum, Enums: []string{"startup", "small", "medium", "big", "huge"}, Default: "medium"},
 		{Name: "founded_at", Type: field.TypeInt},

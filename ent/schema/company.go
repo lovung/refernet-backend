@@ -26,6 +26,7 @@ func (Company) Fields() []ent.Field {
 		field.Text("overview"),
 		field.String("website"),
 		field.Strings("industry"),
+		field.Strings("location"),
 		field.String("logo_url"),
 		field.Enum("size").
 			Values("startup", "small", "medium", "big", "huge").

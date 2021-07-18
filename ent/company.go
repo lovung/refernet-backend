@@ -29,6 +29,8 @@ type Company struct {
 	Website string `json:"website,omitempty"`
 	// Industry holds the value of the "industry" field.
 	Industry []string `json:"industry,omitempty"`
+	// Location holds the value of the "location" field.
+	Location []string `json:"location,omitempty"`
 	// LogoURL holds the value of the "logo_url" field.
 	LogoURL string `json:"logo_url,omitempty"`
 	// Size holds the value of the "size" field.
@@ -63,7 +65,7 @@ func (*Company) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case company.FieldIndustry:
+		case company.FieldIndustry, company.FieldLocation:
 			values[i] = new([]byte)
 		case company.FieldID, company.FieldFoundedAt:
 			values[i] = new(sql.NullInt64)
@@ -131,6 +133,15 @@ func (c *Company) assignValues(columns []string, values []interface{}) error {
 					return fmt.Errorf("unmarshal field industry: %w", err)
 				}
 			}
+		case company.FieldLocation:
+
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field location", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &c.Location); err != nil {
+					return fmt.Errorf("unmarshal field location: %w", err)
+				}
+			}
 		case company.FieldLogoURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field logo_url", values[i])
@@ -194,6 +205,8 @@ func (c *Company) String() string {
 	builder.WriteString(c.Website)
 	builder.WriteString(", industry=")
 	builder.WriteString(fmt.Sprintf("%v", c.Industry))
+	builder.WriteString(", location=")
+	builder.WriteString(fmt.Sprintf("%v", c.Location))
 	builder.WriteString(", logo_url=")
 	builder.WriteString(c.LogoURL)
 	builder.WriteString(", size=")

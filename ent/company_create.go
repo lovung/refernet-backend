@@ -73,6 +73,12 @@ func (cc *CompanyCreate) SetIndustry(s []string) *CompanyCreate {
 	return cc
 }
 
+// SetLocation sets the "location" field.
+func (cc *CompanyCreate) SetLocation(s []string) *CompanyCreate {
+	cc.mutation.SetLocation(s)
+	return cc
+}
+
 // SetLogoURL sets the "logo_url" field.
 func (cc *CompanyCreate) SetLogoURL(s string) *CompanyCreate {
 	cc.mutation.SetLogoURL(s)
@@ -205,6 +211,9 @@ func (cc *CompanyCreate) check() error {
 	if _, ok := cc.mutation.Industry(); !ok {
 		return &ValidationError{Name: "industry", err: errors.New("ent: missing required field \"industry\"")}
 	}
+	if _, ok := cc.mutation.Location(); !ok {
+		return &ValidationError{Name: "location", err: errors.New("ent: missing required field \"location\"")}
+	}
 	if _, ok := cc.mutation.LogoURL(); !ok {
 		return &ValidationError{Name: "logo_url", err: errors.New("ent: missing required field \"logo_url\"")}
 	}
@@ -298,6 +307,14 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 			Column: company.FieldIndustry,
 		})
 		_node.Industry = value
+	}
+	if value, ok := cc.mutation.Location(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: company.FieldLocation,
+		})
+		_node.Location = value
 	}
 	if value, ok := cc.mutation.LogoURL(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

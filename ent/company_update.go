@@ -66,6 +66,12 @@ func (cu *CompanyUpdate) SetIndustry(s []string) *CompanyUpdate {
 	return cu
 }
 
+// SetLocation sets the "location" field.
+func (cu *CompanyUpdate) SetLocation(s []string) *CompanyUpdate {
+	cu.mutation.SetLocation(s)
+	return cu
+}
+
 // SetLogoURL sets the "logo_url" field.
 func (cu *CompanyUpdate) SetLogoURL(s string) *CompanyUpdate {
 	cu.mutation.SetLogoURL(s)
@@ -270,6 +276,13 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: company.FieldIndustry,
 		})
 	}
+	if value, ok := cu.mutation.Location(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: company.FieldLocation,
+		})
+	}
 	if value, ok := cu.mutation.LogoURL(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -406,6 +419,12 @@ func (cuo *CompanyUpdateOne) SetWebsite(s string) *CompanyUpdateOne {
 // SetIndustry sets the "industry" field.
 func (cuo *CompanyUpdateOne) SetIndustry(s []string) *CompanyUpdateOne {
 	cuo.mutation.SetIndustry(s)
+	return cuo
+}
+
+// SetLocation sets the "location" field.
+func (cuo *CompanyUpdateOne) SetLocation(s []string) *CompanyUpdateOne {
+	cuo.mutation.SetLocation(s)
 	return cuo
 }
 
@@ -635,6 +654,13 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: company.FieldIndustry,
+		})
+	}
+	if value, ok := cuo.mutation.Location(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: company.FieldLocation,
 		})
 	}
 	if value, ok := cuo.mutation.LogoURL(); ok {

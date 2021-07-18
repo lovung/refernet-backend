@@ -24,6 +24,8 @@ const (
 	FieldWebsite = "website"
 	// FieldIndustry holds the string denoting the industry field in the database.
 	FieldIndustry = "industry"
+	// FieldLocation holds the string denoting the location field in the database.
+	FieldLocation = "location"
 	// FieldLogoURL holds the string denoting the logo_url field in the database.
 	FieldLogoURL = "logo_url"
 	// FieldSize holds the string denoting the size field in the database.
@@ -52,6 +54,7 @@ var Columns = []string{
 	FieldOverview,
 	FieldWebsite,
 	FieldIndustry,
+	FieldLocation,
 	FieldLogoURL,
 	FieldSize,
 	FieldFoundedAt,
