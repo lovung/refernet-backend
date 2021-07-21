@@ -6,10 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"refernet/ent/company"
-	"refernet/ent/skill"
-	"refernet/ent/user"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/company"
+	"refernet/internal/ent/skill"
+	"refernet/internal/ent/user"
+	"refernet/internal/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -223,11 +223,21 @@ func (wec *WorkExperienceCreate) check() error {
 	if _, ok := wec.mutation.Location(); !ok {
 		return &ValidationError{Name: "location", err: errors.New("ent: missing required field \"location\"")}
 	}
+	if v, ok := wec.mutation.Location(); ok {
+		if err := workexperience.LocationValidator(v); err != nil {
+			return &ValidationError{Name: "location", err: fmt.Errorf("ent: validator failed for field \"location\": %w", err)}
+		}
+	}
 	if _, ok := wec.mutation.StartDate(); !ok {
 		return &ValidationError{Name: "start_date", err: errors.New("ent: missing required field \"start_date\"")}
 	}
 	if _, ok := wec.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New("ent: missing required field \"description\"")}
+	}
+	if v, ok := wec.mutation.Description(); ok {
+		if err := workexperience.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf("ent: validator failed for field \"description\": %w", err)}
+		}
 	}
 	return nil
 }

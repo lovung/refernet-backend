@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"log"
 
-	"refernet/ent/migrate"
+	"refernet/internal/ent/migrate"
 
-	"refernet/ent/company"
-	"refernet/ent/job"
-	"refernet/ent/skill"
-	"refernet/ent/user"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/company"
+	"refernet/internal/ent/job"
+	"refernet/internal/ent/skill"
+	"refernet/internal/ent/user"
+	"refernet/internal/ent/workexperience"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -357,6 +357,22 @@ func (c *JobClient) QueryOwner(j *Job) *UserQuery {
 	return query
 }
 
+// QuerySkills queries the skills edge of a Job.
+func (c *JobClient) QuerySkills(j *Job) *SkillQuery {
+	query := &SkillQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := j.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(job.Table, job.FieldID, id),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, job.SkillsTable, job.SkillsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(j.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *JobClient) Hooks() []Hook {
 	return c.hooks.Job
@@ -456,6 +472,22 @@ func (c *SkillClient) QueryExperiences(s *Skill) *WorkExperienceQuery {
 			sqlgraph.From(skill.Table, skill.FieldID, id),
 			sqlgraph.To(workexperience.Table, workexperience.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, skill.ExperiencesTable, skill.ExperiencesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryJobs queries the jobs edge of a Skill.
+func (c *SkillClient) QueryJobs(s *Skill) *JobQuery {
+	query := &JobQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skill.Table, skill.FieldID, id),
+			sqlgraph.To(job.Table, job.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, skill.JobsTable, skill.JobsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil

@@ -5,7 +5,7 @@ package hook
 import (
 	"context"
 	"fmt"
-	"refernet/ent"
+	"refernet/internal/ent"
 )
 
 // The CompanyFunc type is an adapter to allow the use of ordinary

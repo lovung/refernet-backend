@@ -5,8 +5,8 @@ package ent
 import (
 	"context"
 	"fmt"
-	"refernet/ent/predicate"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/predicate"
+	"refernet/internal/ent/workexperience"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

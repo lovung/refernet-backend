@@ -5,9 +5,9 @@ package ent
 import (
 	"context"
 	"fmt"
-	"refernet/ent/company"
-	"refernet/ent/predicate"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/company"
+	"refernet/internal/ent/predicate"
+	"refernet/internal/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -60,15 +60,15 @@ func (cu *CompanyUpdate) SetWebsite(s string) *CompanyUpdate {
 	return cu
 }
 
-// SetIndustry sets the "industry" field.
-func (cu *CompanyUpdate) SetIndustry(s []string) *CompanyUpdate {
-	cu.mutation.SetIndustry(s)
+// SetIndustries sets the "industries" field.
+func (cu *CompanyUpdate) SetIndustries(s []string) *CompanyUpdate {
+	cu.mutation.SetIndustries(s)
 	return cu
 }
 
-// SetLocation sets the "location" field.
-func (cu *CompanyUpdate) SetLocation(s []string) *CompanyUpdate {
-	cu.mutation.SetLocation(s)
+// SetLocations sets the "locations" field.
+func (cu *CompanyUpdate) SetLocations(s []string) *CompanyUpdate {
+	cu.mutation.SetLocations(s)
 	return cu
 }
 
@@ -210,6 +210,21 @@ func (cu *CompanyUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
+	if v, ok := cu.mutation.Overview(); ok {
+		if err := company.OverviewValidator(v); err != nil {
+			return &ValidationError{Name: "overview", err: fmt.Errorf("ent: validator failed for field \"overview\": %w", err)}
+		}
+	}
+	if v, ok := cu.mutation.Website(); ok {
+		if err := company.WebsiteValidator(v); err != nil {
+			return &ValidationError{Name: "website", err: fmt.Errorf("ent: validator failed for field \"website\": %w", err)}
+		}
+	}
+	if v, ok := cu.mutation.LogoURL(); ok {
+		if err := company.LogoURLValidator(v); err != nil {
+			return &ValidationError{Name: "logo_url", err: fmt.Errorf("ent: validator failed for field \"logo_url\": %w", err)}
+		}
+	}
 	if v, ok := cu.mutation.Size(); ok {
 		if err := company.SizeValidator(v); err != nil {
 			return &ValidationError{Name: "size", err: fmt.Errorf("ent: validator failed for field \"size\": %w", err)}
@@ -269,18 +284,18 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: company.FieldWebsite,
 		})
 	}
-	if value, ok := cu.mutation.Industry(); ok {
+	if value, ok := cu.mutation.Industries(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: company.FieldIndustry,
+			Column: company.FieldIndustries,
 		})
 	}
-	if value, ok := cu.mutation.Location(); ok {
+	if value, ok := cu.mutation.Locations(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: company.FieldLocation,
+			Column: company.FieldLocations,
 		})
 	}
 	if value, ok := cu.mutation.LogoURL(); ok {
@@ -416,15 +431,15 @@ func (cuo *CompanyUpdateOne) SetWebsite(s string) *CompanyUpdateOne {
 	return cuo
 }
 
-// SetIndustry sets the "industry" field.
-func (cuo *CompanyUpdateOne) SetIndustry(s []string) *CompanyUpdateOne {
-	cuo.mutation.SetIndustry(s)
+// SetIndustries sets the "industries" field.
+func (cuo *CompanyUpdateOne) SetIndustries(s []string) *CompanyUpdateOne {
+	cuo.mutation.SetIndustries(s)
 	return cuo
 }
 
-// SetLocation sets the "location" field.
-func (cuo *CompanyUpdateOne) SetLocation(s []string) *CompanyUpdateOne {
-	cuo.mutation.SetLocation(s)
+// SetLocations sets the "locations" field.
+func (cuo *CompanyUpdateOne) SetLocations(s []string) *CompanyUpdateOne {
+	cuo.mutation.SetLocations(s)
 	return cuo
 }
 
@@ -573,6 +588,21 @@ func (cuo *CompanyUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
+	if v, ok := cuo.mutation.Overview(); ok {
+		if err := company.OverviewValidator(v); err != nil {
+			return &ValidationError{Name: "overview", err: fmt.Errorf("ent: validator failed for field \"overview\": %w", err)}
+		}
+	}
+	if v, ok := cuo.mutation.Website(); ok {
+		if err := company.WebsiteValidator(v); err != nil {
+			return &ValidationError{Name: "website", err: fmt.Errorf("ent: validator failed for field \"website\": %w", err)}
+		}
+	}
+	if v, ok := cuo.mutation.LogoURL(); ok {
+		if err := company.LogoURLValidator(v); err != nil {
+			return &ValidationError{Name: "logo_url", err: fmt.Errorf("ent: validator failed for field \"logo_url\": %w", err)}
+		}
+	}
 	if v, ok := cuo.mutation.Size(); ok {
 		if err := company.SizeValidator(v); err != nil {
 			return &ValidationError{Name: "size", err: fmt.Errorf("ent: validator failed for field \"size\": %w", err)}
@@ -649,18 +679,18 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 			Column: company.FieldWebsite,
 		})
 	}
-	if value, ok := cuo.mutation.Industry(); ok {
+	if value, ok := cuo.mutation.Industries(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: company.FieldIndustry,
+			Column: company.FieldIndustries,
 		})
 	}
-	if value, ok := cuo.mutation.Location(); ok {
+	if value, ok := cuo.mutation.Locations(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: company.FieldLocation,
+			Column: company.FieldLocations,
 		})
 	}
 	if value, ok := cuo.mutation.LogoURL(); ok {

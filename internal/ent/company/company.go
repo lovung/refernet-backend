@@ -22,10 +22,10 @@ const (
 	FieldOverview = "overview"
 	// FieldWebsite holds the string denoting the website field in the database.
 	FieldWebsite = "website"
-	// FieldIndustry holds the string denoting the industry field in the database.
-	FieldIndustry = "industry"
-	// FieldLocation holds the string denoting the location field in the database.
-	FieldLocation = "location"
+	// FieldIndustries holds the string denoting the industries field in the database.
+	FieldIndustries = "industries"
+	// FieldLocations holds the string denoting the locations field in the database.
+	FieldLocations = "locations"
 	// FieldLogoURL holds the string denoting the logo_url field in the database.
 	FieldLogoURL = "logo_url"
 	// FieldSize holds the string denoting the size field in the database.
@@ -53,8 +53,8 @@ var Columns = []string{
 	FieldName,
 	FieldOverview,
 	FieldWebsite,
-	FieldIndustry,
-	FieldLocation,
+	FieldIndustries,
+	FieldLocations,
 	FieldLogoURL,
 	FieldSize,
 	FieldFoundedAt,
@@ -77,6 +77,12 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// OverviewValidator is a validator for the "overview" field. It is called by the builders before save.
+	OverviewValidator func(string) error
+	// WebsiteValidator is a validator for the "website" field. It is called by the builders before save.
+	WebsiteValidator func(string) error
+	// LogoURLValidator is a validator for the "logo_url" field. It is called by the builders before save.
+	LogoURLValidator func(string) error
 	// FoundedAtValidator is a validator for the "founded_at" field. It is called by the builders before save.
 	FoundedAtValidator func(int) error
 )

@@ -5,11 +5,11 @@ package ent
 import (
 	"errors"
 	"fmt"
-	"refernet/ent/company"
-	"refernet/ent/job"
-	"refernet/ent/skill"
-	"refernet/ent/user"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/company"
+	"refernet/internal/ent/job"
+	"refernet/internal/ent/skill"
+	"refernet/internal/ent/user"
+	"refernet/internal/ent/workexperience"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"

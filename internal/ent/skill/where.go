@@ -3,7 +3,7 @@
 package skill
 
 import (
-	"refernet/ent/predicate"
+	"refernet/internal/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -114,17 +114,10 @@ func Name(v string) predicate.Skill {
 	})
 }
 
-// DarkLogoURL applies equality check predicate on the "dark_logo_url" field. It's identical to DarkLogoURLEQ.
-func DarkLogoURL(v string) predicate.Skill {
+// LogoURL applies equality check predicate on the "logo_url" field. It's identical to LogoURLEQ.
+func LogoURL(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDarkLogoURL), v))
-	})
-}
-
-// LightLogoURL applies equality check predicate on the "light_logo_url" field. It's identical to LightLogoURLEQ.
-func LightLogoURL(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLightLogoURL), v))
+		s.Where(sql.EQ(s.C(FieldLogoURL), v))
 	})
 }
 
@@ -391,22 +384,22 @@ func NameContainsFold(v string) predicate.Skill {
 	})
 }
 
-// DarkLogoURLEQ applies the EQ predicate on the "dark_logo_url" field.
-func DarkLogoURLEQ(v string) predicate.Skill {
+// LogoURLEQ applies the EQ predicate on the "logo_url" field.
+func LogoURLEQ(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDarkLogoURL), v))
+		s.Where(sql.EQ(s.C(FieldLogoURL), v))
 	})
 }
 
-// DarkLogoURLNEQ applies the NEQ predicate on the "dark_logo_url" field.
-func DarkLogoURLNEQ(v string) predicate.Skill {
+// LogoURLNEQ applies the NEQ predicate on the "logo_url" field.
+func LogoURLNEQ(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldDarkLogoURL), v))
+		s.Where(sql.NEQ(s.C(FieldLogoURL), v))
 	})
 }
 
-// DarkLogoURLIn applies the In predicate on the "dark_logo_url" field.
-func DarkLogoURLIn(vs ...string) predicate.Skill {
+// LogoURLIn applies the In predicate on the "logo_url" field.
+func LogoURLIn(vs ...string) predicate.Skill {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -418,12 +411,12 @@ func DarkLogoURLIn(vs ...string) predicate.Skill {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldDarkLogoURL), v...))
+		s.Where(sql.In(s.C(FieldLogoURL), v...))
 	})
 }
 
-// DarkLogoURLNotIn applies the NotIn predicate on the "dark_logo_url" field.
-func DarkLogoURLNotIn(vs ...string) predicate.Skill {
+// LogoURLNotIn applies the NotIn predicate on the "logo_url" field.
+func LogoURLNotIn(vs ...string) predicate.Skill {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -435,181 +428,70 @@ func DarkLogoURLNotIn(vs ...string) predicate.Skill {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldDarkLogoURL), v...))
+		s.Where(sql.NotIn(s.C(FieldLogoURL), v...))
 	})
 }
 
-// DarkLogoURLGT applies the GT predicate on the "dark_logo_url" field.
-func DarkLogoURLGT(v string) predicate.Skill {
+// LogoURLGT applies the GT predicate on the "logo_url" field.
+func LogoURLGT(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldDarkLogoURL), v))
+		s.Where(sql.GT(s.C(FieldLogoURL), v))
 	})
 }
 
-// DarkLogoURLGTE applies the GTE predicate on the "dark_logo_url" field.
-func DarkLogoURLGTE(v string) predicate.Skill {
+// LogoURLGTE applies the GTE predicate on the "logo_url" field.
+func LogoURLGTE(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldDarkLogoURL), v))
+		s.Where(sql.GTE(s.C(FieldLogoURL), v))
 	})
 }
 
-// DarkLogoURLLT applies the LT predicate on the "dark_logo_url" field.
-func DarkLogoURLLT(v string) predicate.Skill {
+// LogoURLLT applies the LT predicate on the "logo_url" field.
+func LogoURLLT(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldDarkLogoURL), v))
+		s.Where(sql.LT(s.C(FieldLogoURL), v))
 	})
 }
 
-// DarkLogoURLLTE applies the LTE predicate on the "dark_logo_url" field.
-func DarkLogoURLLTE(v string) predicate.Skill {
+// LogoURLLTE applies the LTE predicate on the "logo_url" field.
+func LogoURLLTE(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldDarkLogoURL), v))
+		s.Where(sql.LTE(s.C(FieldLogoURL), v))
 	})
 }
 
-// DarkLogoURLContains applies the Contains predicate on the "dark_logo_url" field.
-func DarkLogoURLContains(v string) predicate.Skill {
+// LogoURLContains applies the Contains predicate on the "logo_url" field.
+func LogoURLContains(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldDarkLogoURL), v))
+		s.Where(sql.Contains(s.C(FieldLogoURL), v))
 	})
 }
 
-// DarkLogoURLHasPrefix applies the HasPrefix predicate on the "dark_logo_url" field.
-func DarkLogoURLHasPrefix(v string) predicate.Skill {
+// LogoURLHasPrefix applies the HasPrefix predicate on the "logo_url" field.
+func LogoURLHasPrefix(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldDarkLogoURL), v))
+		s.Where(sql.HasPrefix(s.C(FieldLogoURL), v))
 	})
 }
 
-// DarkLogoURLHasSuffix applies the HasSuffix predicate on the "dark_logo_url" field.
-func DarkLogoURLHasSuffix(v string) predicate.Skill {
+// LogoURLHasSuffix applies the HasSuffix predicate on the "logo_url" field.
+func LogoURLHasSuffix(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldDarkLogoURL), v))
+		s.Where(sql.HasSuffix(s.C(FieldLogoURL), v))
 	})
 }
 
-// DarkLogoURLEqualFold applies the EqualFold predicate on the "dark_logo_url" field.
-func DarkLogoURLEqualFold(v string) predicate.Skill {
+// LogoURLEqualFold applies the EqualFold predicate on the "logo_url" field.
+func LogoURLEqualFold(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldDarkLogoURL), v))
+		s.Where(sql.EqualFold(s.C(FieldLogoURL), v))
 	})
 }
 
-// DarkLogoURLContainsFold applies the ContainsFold predicate on the "dark_logo_url" field.
-func DarkLogoURLContainsFold(v string) predicate.Skill {
+// LogoURLContainsFold applies the ContainsFold predicate on the "logo_url" field.
+func LogoURLContainsFold(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldDarkLogoURL), v))
-	})
-}
-
-// LightLogoURLEQ applies the EQ predicate on the "light_logo_url" field.
-func LightLogoURLEQ(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLightLogoURL), v))
-	})
-}
-
-// LightLogoURLNEQ applies the NEQ predicate on the "light_logo_url" field.
-func LightLogoURLNEQ(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldLightLogoURL), v))
-	})
-}
-
-// LightLogoURLIn applies the In predicate on the "light_logo_url" field.
-func LightLogoURLIn(vs ...string) predicate.Skill {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Skill(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldLightLogoURL), v...))
-	})
-}
-
-// LightLogoURLNotIn applies the NotIn predicate on the "light_logo_url" field.
-func LightLogoURLNotIn(vs ...string) predicate.Skill {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Skill(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldLightLogoURL), v...))
-	})
-}
-
-// LightLogoURLGT applies the GT predicate on the "light_logo_url" field.
-func LightLogoURLGT(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldLightLogoURL), v))
-	})
-}
-
-// LightLogoURLGTE applies the GTE predicate on the "light_logo_url" field.
-func LightLogoURLGTE(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldLightLogoURL), v))
-	})
-}
-
-// LightLogoURLLT applies the LT predicate on the "light_logo_url" field.
-func LightLogoURLLT(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldLightLogoURL), v))
-	})
-}
-
-// LightLogoURLLTE applies the LTE predicate on the "light_logo_url" field.
-func LightLogoURLLTE(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldLightLogoURL), v))
-	})
-}
-
-// LightLogoURLContains applies the Contains predicate on the "light_logo_url" field.
-func LightLogoURLContains(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldLightLogoURL), v))
-	})
-}
-
-// LightLogoURLHasPrefix applies the HasPrefix predicate on the "light_logo_url" field.
-func LightLogoURLHasPrefix(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldLightLogoURL), v))
-	})
-}
-
-// LightLogoURLHasSuffix applies the HasSuffix predicate on the "light_logo_url" field.
-func LightLogoURLHasSuffix(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldLightLogoURL), v))
-	})
-}
-
-// LightLogoURLEqualFold applies the EqualFold predicate on the "light_logo_url" field.
-func LightLogoURLEqualFold(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldLightLogoURL), v))
-	})
-}
-
-// LightLogoURLContainsFold applies the ContainsFold predicate on the "light_logo_url" field.
-func LightLogoURLContainsFold(v string) predicate.Skill {
-	return predicate.Skill(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldLightLogoURL), v))
+		s.Where(sql.ContainsFold(s.C(FieldLogoURL), v))
 	})
 }
 
@@ -632,6 +514,34 @@ func HasExperiencesWith(preds ...predicate.WorkExperience) predicate.Skill {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ExperiencesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, ExperiencesTable, ExperiencesPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasJobs applies the HasEdge predicate on the "jobs" edge.
+func HasJobs() predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(JobsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, JobsTable, JobsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasJobsWith applies the HasEdge predicate on the "jobs" edge with a given conditions (other predicates).
+func HasJobsWith(preds ...predicate.Job) predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(JobsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, JobsTable, JobsPrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

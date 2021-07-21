@@ -8,9 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"refernet/ent/company"
-	"refernet/ent/predicate"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/company"
+	"refernet/internal/ent/predicate"
+	"refernet/internal/ent/workexperience"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

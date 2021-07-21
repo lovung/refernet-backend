@@ -4,9 +4,9 @@ package ent
 
 import (
 	"fmt"
-	"refernet/ent/company"
-	"refernet/ent/user"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/company"
+	"refernet/internal/ent/user"
+	"refernet/internal/ent/workexperience"
 	"strings"
 	"time"
 

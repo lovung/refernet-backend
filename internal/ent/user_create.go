@@ -6,9 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"refernet/ent/job"
-	"refernet/ent/user"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/job"
+	"refernet/internal/ent/user"
+	"refernet/internal/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -59,6 +59,12 @@ func (uc *UserCreate) SetUsername(s string) *UserCreate {
 // SetFullname sets the "fullname" field.
 func (uc *UserCreate) SetFullname(s string) *UserCreate {
 	uc.mutation.SetFullname(s)
+	return uc
+}
+
+// SetPassword sets the "password" field.
+func (uc *UserCreate) SetPassword(s string) *UserCreate {
+	uc.mutation.SetPassword(s)
 	return uc
 }
 
@@ -232,6 +238,14 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "fullname", err: fmt.Errorf("ent: validator failed for field \"fullname\": %w", err)}
 		}
 	}
+	if _, ok := uc.mutation.Password(); !ok {
+		return &ValidationError{Name: "password", err: errors.New("ent: missing required field \"password\"")}
+	}
+	if v, ok := uc.mutation.Password(); ok {
+		if err := user.PasswordValidator(v); err != nil {
+			return &ValidationError{Name: "password", err: fmt.Errorf("ent: validator failed for field \"password\": %w", err)}
+		}
+	}
 	if _, ok := uc.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New("ent: missing required field \"email\"")}
 	}
@@ -243,17 +257,42 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Phone(); !ok {
 		return &ValidationError{Name: "phone", err: errors.New("ent: missing required field \"phone\"")}
 	}
+	if v, ok := uc.mutation.Phone(); ok {
+		if err := user.PhoneValidator(v); err != nil {
+			return &ValidationError{Name: "phone", err: fmt.Errorf("ent: validator failed for field \"phone\": %w", err)}
+		}
+	}
 	if _, ok := uc.mutation.Bio(); !ok {
 		return &ValidationError{Name: "bio", err: errors.New("ent: missing required field \"bio\"")}
+	}
+	if v, ok := uc.mutation.Bio(); ok {
+		if err := user.BioValidator(v); err != nil {
+			return &ValidationError{Name: "bio", err: fmt.Errorf("ent: validator failed for field \"bio\": %w", err)}
+		}
 	}
 	if _, ok := uc.mutation.Intro(); !ok {
 		return &ValidationError{Name: "intro", err: errors.New("ent: missing required field \"intro\"")}
 	}
+	if v, ok := uc.mutation.Intro(); ok {
+		if err := user.IntroValidator(v); err != nil {
+			return &ValidationError{Name: "intro", err: fmt.Errorf("ent: validator failed for field \"intro\": %w", err)}
+		}
+	}
 	if _, ok := uc.mutation.GithubProfile(); !ok {
 		return &ValidationError{Name: "github_profile", err: errors.New("ent: missing required field \"github_profile\"")}
 	}
+	if v, ok := uc.mutation.GithubProfile(); ok {
+		if err := user.GithubProfileValidator(v); err != nil {
+			return &ValidationError{Name: "github_profile", err: fmt.Errorf("ent: validator failed for field \"github_profile\": %w", err)}
+		}
+	}
 	if _, ok := uc.mutation.ProfilePictureURL(); !ok {
 		return &ValidationError{Name: "profile_picture_url", err: errors.New("ent: missing required field \"profile_picture_url\"")}
+	}
+	if v, ok := uc.mutation.ProfilePictureURL(); ok {
+		if err := user.ProfilePictureURLValidator(v); err != nil {
+			return &ValidationError{Name: "profile_picture_url", err: fmt.Errorf("ent: validator failed for field \"profile_picture_url\": %w", err)}
+		}
 	}
 	if _, ok := uc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
@@ -321,6 +360,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldFullname,
 		})
 		_node.Fullname = value
+	}
+	if value, ok := uc.mutation.Password(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldPassword,
+		})
+		_node.Password = value
 	}
 	if value, ok := uc.mutation.Email(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

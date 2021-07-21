@@ -3,9 +3,10 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
-	"refernet/ent/job"
-	"refernet/ent/user"
+	"refernet/internal/ent/job"
+	"refernet/internal/ent/user"
 	"strings"
 	"time"
 
@@ -23,12 +24,14 @@ type Job struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
-	// Location holds the value of the "location" field.
-	Location string `json:"location,omitempty"`
+	// Locations holds the value of the "locations" field.
+	Locations []string `json:"locations,omitempty"`
 	// MinSalary holds the value of the "min_salary" field.
 	MinSalary uint64 `json:"min_salary,omitempty"`
 	// MaxSalary holds the value of the "max_salary" field.
 	MaxSalary uint64 `json:"max_salary,omitempty"`
+	// SalaryUnit holds the value of the "salary_unit" field.
+	SalaryUnit job.SalaryUnit `json:"salary_unit,omitempty"`
 	// Type holds the value of the "type" field.
 	Type job.Type `json:"type,omitempty"`
 	// Requirements holds the value of the "requirements" field.
@@ -47,9 +50,11 @@ type Job struct {
 type JobEdges struct {
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
+	// Skills holds the value of the skills edge.
+	Skills []*Skill `json:"skills,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -66,14 +71,25 @@ func (e JobEdges) OwnerOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "owner"}
 }
 
+// SkillsOrErr returns the Skills value or an error if the edge
+// was not loaded in eager-loading.
+func (e JobEdges) SkillsOrErr() ([]*Skill, error) {
+	if e.loadedTypes[1] {
+		return e.Skills, nil
+	}
+	return nil, &NotLoadedError{edge: "skills"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Job) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case job.FieldLocations:
+			values[i] = new([]byte)
 		case job.FieldID, job.FieldMinSalary, job.FieldMaxSalary:
 			values[i] = new(sql.NullInt64)
-		case job.FieldTitle, job.FieldLocation, job.FieldType, job.FieldRequirements, job.FieldResponsibilities, job.FieldBenefits:
+		case job.FieldTitle, job.FieldSalaryUnit, job.FieldType, job.FieldRequirements, job.FieldResponsibilities, job.FieldBenefits:
 			values[i] = new(sql.NullString)
 		case job.FieldCreatedAt, job.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -118,11 +134,14 @@ func (j *Job) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				j.Title = value.String
 			}
-		case job.FieldLocation:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field location", values[i])
-			} else if value.Valid {
-				j.Location = value.String
+		case job.FieldLocations:
+
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field locations", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &j.Locations); err != nil {
+					return fmt.Errorf("unmarshal field locations: %w", err)
+				}
 			}
 		case job.FieldMinSalary:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -135,6 +154,12 @@ func (j *Job) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field max_salary", values[i])
 			} else if value.Valid {
 				j.MaxSalary = uint64(value.Int64)
+			}
+		case job.FieldSalaryUnit:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field salary_unit", values[i])
+			} else if value.Valid {
+				j.SalaryUnit = job.SalaryUnit(value.String)
 			}
 		case job.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -177,6 +202,11 @@ func (j *Job) QueryOwner() *UserQuery {
 	return (&JobClient{config: j.config}).QueryOwner(j)
 }
 
+// QuerySkills queries the "skills" edge of the Job entity.
+func (j *Job) QuerySkills() *SkillQuery {
+	return (&JobClient{config: j.config}).QuerySkills(j)
+}
+
 // Update returns a builder for updating this Job.
 // Note that you need to call Job.Unwrap() before calling this method if this Job
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -206,12 +236,14 @@ func (j *Job) String() string {
 	builder.WriteString(j.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", title=")
 	builder.WriteString(j.Title)
-	builder.WriteString(", location=")
-	builder.WriteString(j.Location)
+	builder.WriteString(", locations=")
+	builder.WriteString(fmt.Sprintf("%v", j.Locations))
 	builder.WriteString(", min_salary=")
 	builder.WriteString(fmt.Sprintf("%v", j.MinSalary))
 	builder.WriteString(", max_salary=")
 	builder.WriteString(fmt.Sprintf("%v", j.MaxSalary))
+	builder.WriteString(", salary_unit=")
+	builder.WriteString(fmt.Sprintf("%v", j.SalaryUnit))
 	builder.WriteString(", type=")
 	builder.WriteString(fmt.Sprintf("%v", j.Type))
 	builder.WriteString(", requirements=")

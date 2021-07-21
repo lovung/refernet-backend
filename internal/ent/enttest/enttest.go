@@ -4,9 +4,9 @@ package enttest
 
 import (
 	"context"
-	"refernet/ent"
+	"refernet/internal/ent"
 	// required by schema hooks.
-	_ "refernet/ent/runtime"
+	_ "refernet/internal/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

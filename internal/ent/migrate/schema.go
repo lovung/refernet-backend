@@ -14,11 +14,11 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "overview", Type: field.TypeString, Size: 2147483647},
-		{Name: "website", Type: field.TypeString},
-		{Name: "industry", Type: field.TypeJSON},
-		{Name: "location", Type: field.TypeJSON},
-		{Name: "logo_url", Type: field.TypeString},
+		{Name: "overview", Type: field.TypeString, Size: 1024},
+		{Name: "website", Type: field.TypeString, Size: 128},
+		{Name: "industries", Type: field.TypeJSON},
+		{Name: "locations", Type: field.TypeJSON},
+		{Name: "logo_url", Type: field.TypeString, Size: 128},
 		{Name: "size", Type: field.TypeEnum, Enums: []string{"startup", "small", "medium", "big", "huge"}, Default: "medium"},
 		{Name: "founded_at", Type: field.TypeInt},
 	}
@@ -34,10 +34,11 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "title", Type: field.TypeString},
-		{Name: "location", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString, Size: 128},
+		{Name: "locations", Type: field.TypeJSON},
 		{Name: "min_salary", Type: field.TypeUint64},
 		{Name: "max_salary", Type: field.TypeUint64},
+		{Name: "salary_unit", Type: field.TypeEnum, Enums: []string{"VND", "USD"}, Default: "VND"},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"fulltime", "parttime", "contract", "intern", "freelance", "other"}, Default: "fulltime"},
 		{Name: "requirements", Type: field.TypeString, Size: 1024},
 		{Name: "responsibilities", Type: field.TypeString, Size: 1024},
@@ -52,7 +53,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "jobs_users_jobs",
-				Columns:    []*schema.Column{JobsColumns[11]},
+				Columns:    []*schema.Column{JobsColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -63,9 +64,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
-		{Name: "dark_logo_url", Type: field.TypeString, Default: ""},
-		{Name: "light_logo_url", Type: field.TypeString, Default: ""},
+		{Name: "name", Type: field.TypeString, Size: 32},
+		{Name: "logo_url", Type: field.TypeString, Default: ""},
 	}
 	// SkillsTable holds the schema information for the "skills" table.
 	SkillsTable = &schema.Table{
@@ -79,14 +79,15 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "username", Type: field.TypeString},
-		{Name: "fullname", Type: field.TypeString},
-		{Name: "email", Type: field.TypeString},
-		{Name: "phone", Type: field.TypeString},
-		{Name: "bio", Type: field.TypeString},
-		{Name: "intro", Type: field.TypeString, Size: 2147483647},
-		{Name: "github_profile", Type: field.TypeString},
-		{Name: "profile_picture_url", Type: field.TypeString},
+		{Name: "username", Type: field.TypeString, Size: 128},
+		{Name: "fullname", Type: field.TypeString, Size: 128},
+		{Name: "password", Type: field.TypeString, Size: 256},
+		{Name: "email", Type: field.TypeString, Size: 128},
+		{Name: "phone", Type: field.TypeString, Size: 20},
+		{Name: "bio", Type: field.TypeString, Size: 64},
+		{Name: "intro", Type: field.TypeString, Size: 1024},
+		{Name: "github_profile", Type: field.TypeString, Size: 128},
+		{Name: "profile_picture_url", Type: field.TypeString, Size: 128},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"new", "verified", "inactive"}, Default: "new"},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -101,11 +102,11 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "title", Type: field.TypeString},
-		{Name: "location", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString, Size: 128},
+		{Name: "location", Type: field.TypeString, Size: 128},
 		{Name: "start_date", Type: field.TypeTime},
 		{Name: "end_date", Type: field.TypeTime, Nullable: true},
-		{Name: "description", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Size: 1028},
 		{Name: "company_staffs", Type: field.TypeInt, Nullable: true},
 		{Name: "user_experiences", Type: field.TypeInt, Nullable: true},
 	}
@@ -154,6 +155,31 @@ var (
 			},
 		},
 	}
+	// SkillJobsColumns holds the columns for the "skill_jobs" table.
+	SkillJobsColumns = []*schema.Column{
+		{Name: "skill_id", Type: field.TypeInt},
+		{Name: "job_id", Type: field.TypeInt},
+	}
+	// SkillJobsTable holds the schema information for the "skill_jobs" table.
+	SkillJobsTable = &schema.Table{
+		Name:       "skill_jobs",
+		Columns:    SkillJobsColumns,
+		PrimaryKey: []*schema.Column{SkillJobsColumns[0], SkillJobsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "skill_jobs_skill_id",
+				Columns:    []*schema.Column{SkillJobsColumns[0]},
+				RefColumns: []*schema.Column{SkillsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "skill_jobs_job_id",
+				Columns:    []*schema.Column{SkillJobsColumns[1]},
+				RefColumns: []*schema.Column{JobsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CompaniesTable,
@@ -162,6 +188,7 @@ var (
 		UsersTable,
 		WorkExperiencesTable,
 		SkillExperiencesTable,
+		SkillJobsTable,
 	}
 )
 
@@ -171,4 +198,6 @@ func init() {
 	WorkExperiencesTable.ForeignKeys[1].RefTable = UsersTable
 	SkillExperiencesTable.ForeignKeys[0].RefTable = SkillsTable
 	SkillExperiencesTable.ForeignKeys[1].RefTable = WorkExperiencesTable
+	SkillJobsTable.ForeignKeys[0].RefTable = SkillsTable
+	SkillJobsTable.ForeignKeys[1].RefTable = JobsTable
 }

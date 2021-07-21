@@ -5,11 +5,11 @@ package ent
 import (
 	"context"
 	"fmt"
-	"refernet/ent/company"
-	"refernet/ent/predicate"
-	"refernet/ent/skill"
-	"refernet/ent/user"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/company"
+	"refernet/internal/ent/predicate"
+	"refernet/internal/ent/skill"
+	"refernet/internal/ent/user"
+	"refernet/internal/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -241,6 +241,16 @@ func (weu *WorkExperienceUpdate) check() error {
 	if v, ok := weu.mutation.Title(); ok {
 		if err := workexperience.TitleValidator(v); err != nil {
 			return &ValidationError{Name: "title", err: fmt.Errorf("ent: validator failed for field \"title\": %w", err)}
+		}
+	}
+	if v, ok := weu.mutation.Location(); ok {
+		if err := workexperience.LocationValidator(v); err != nil {
+			return &ValidationError{Name: "location", err: fmt.Errorf("ent: validator failed for field \"location\": %w", err)}
+		}
+	}
+	if v, ok := weu.mutation.Description(); ok {
+		if err := workexperience.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf("ent: validator failed for field \"description\": %w", err)}
 		}
 	}
 	return nil
@@ -673,6 +683,16 @@ func (weuo *WorkExperienceUpdateOne) check() error {
 	if v, ok := weuo.mutation.Title(); ok {
 		if err := workexperience.TitleValidator(v); err != nil {
 			return &ValidationError{Name: "title", err: fmt.Errorf("ent: validator failed for field \"title\": %w", err)}
+		}
+	}
+	if v, ok := weuo.mutation.Location(); ok {
+		if err := workexperience.LocationValidator(v); err != nil {
+			return &ValidationError{Name: "location", err: fmt.Errorf("ent: validator failed for field \"location\": %w", err)}
+		}
+	}
+	if v, ok := weuo.mutation.Description(); ok {
+		if err := workexperience.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf("ent: validator failed for field \"description\": %w", err)}
 		}
 	}
 	return nil

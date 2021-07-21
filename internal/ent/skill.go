@@ -4,7 +4,7 @@ package ent
 
 import (
 	"fmt"
-	"refernet/ent/skill"
+	"refernet/internal/ent/skill"
 	"strings"
 	"time"
 
@@ -22,10 +22,8 @@ type Skill struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// DarkLogoURL holds the value of the "dark_logo_url" field.
-	DarkLogoURL string `json:"dark_logo_url,omitempty"`
-	// LightLogoURL holds the value of the "light_logo_url" field.
-	LightLogoURL string `json:"light_logo_url,omitempty"`
+	// LogoURL holds the value of the "logo_url" field.
+	LogoURL string `json:"logo_url,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SkillQuery when eager-loading is set.
 	Edges SkillEdges `json:"edges"`
@@ -35,9 +33,11 @@ type Skill struct {
 type SkillEdges struct {
 	// Experiences holds the value of the experiences edge.
 	Experiences []*WorkExperience `json:"experiences,omitempty"`
+	// Jobs holds the value of the jobs edge.
+	Jobs []*Job `json:"jobs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ExperiencesOrErr returns the Experiences value or an error if the edge
@@ -49,6 +49,15 @@ func (e SkillEdges) ExperiencesOrErr() ([]*WorkExperience, error) {
 	return nil, &NotLoadedError{edge: "experiences"}
 }
 
+// JobsOrErr returns the Jobs value or an error if the edge
+// was not loaded in eager-loading.
+func (e SkillEdges) JobsOrErr() ([]*Job, error) {
+	if e.loadedTypes[1] {
+		return e.Jobs, nil
+	}
+	return nil, &NotLoadedError{edge: "jobs"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Skill) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -56,7 +65,7 @@ func (*Skill) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case skill.FieldID:
 			values[i] = new(sql.NullInt64)
-		case skill.FieldName, skill.FieldDarkLogoURL, skill.FieldLightLogoURL:
+		case skill.FieldName, skill.FieldLogoURL:
 			values[i] = new(sql.NullString)
 		case skill.FieldCreatedAt, skill.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -99,17 +108,11 @@ func (s *Skill) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				s.Name = value.String
 			}
-		case skill.FieldDarkLogoURL:
+		case skill.FieldLogoURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field dark_logo_url", values[i])
+				return fmt.Errorf("unexpected type %T for field logo_url", values[i])
 			} else if value.Valid {
-				s.DarkLogoURL = value.String
-			}
-		case skill.FieldLightLogoURL:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field light_logo_url", values[i])
-			} else if value.Valid {
-				s.LightLogoURL = value.String
+				s.LogoURL = value.String
 			}
 		}
 	}
@@ -119,6 +122,11 @@ func (s *Skill) assignValues(columns []string, values []interface{}) error {
 // QueryExperiences queries the "experiences" edge of the Skill entity.
 func (s *Skill) QueryExperiences() *WorkExperienceQuery {
 	return (&SkillClient{config: s.config}).QueryExperiences(s)
+}
+
+// QueryJobs queries the "jobs" edge of the Skill entity.
+func (s *Skill) QueryJobs() *JobQuery {
+	return (&SkillClient{config: s.config}).QueryJobs(s)
 }
 
 // Update returns a builder for updating this Skill.
@@ -150,10 +158,8 @@ func (s *Skill) String() string {
 	builder.WriteString(s.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", name=")
 	builder.WriteString(s.Name)
-	builder.WriteString(", dark_logo_url=")
-	builder.WriteString(s.DarkLogoURL)
-	builder.WriteString(", light_logo_url=")
-	builder.WriteString(s.LightLogoURL)
+	builder.WriteString(", logo_url=")
+	builder.WriteString(s.LogoURL)
 	builder.WriteByte(')')
 	return builder.String()
 }

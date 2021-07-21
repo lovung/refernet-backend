@@ -6,8 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"refernet/ent/job"
-	"refernet/ent/user"
+	"refernet/internal/ent/job"
+	"refernet/internal/ent/skill"
+	"refernet/internal/ent/user"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -55,9 +56,9 @@ func (jc *JobCreate) SetTitle(s string) *JobCreate {
 	return jc
 }
 
-// SetLocation sets the "location" field.
-func (jc *JobCreate) SetLocation(s string) *JobCreate {
-	jc.mutation.SetLocation(s)
+// SetLocations sets the "locations" field.
+func (jc *JobCreate) SetLocations(s []string) *JobCreate {
+	jc.mutation.SetLocations(s)
 	return jc
 }
 
@@ -70,6 +71,20 @@ func (jc *JobCreate) SetMinSalary(u uint64) *JobCreate {
 // SetMaxSalary sets the "max_salary" field.
 func (jc *JobCreate) SetMaxSalary(u uint64) *JobCreate {
 	jc.mutation.SetMaxSalary(u)
+	return jc
+}
+
+// SetSalaryUnit sets the "salary_unit" field.
+func (jc *JobCreate) SetSalaryUnit(ju job.SalaryUnit) *JobCreate {
+	jc.mutation.SetSalaryUnit(ju)
+	return jc
+}
+
+// SetNillableSalaryUnit sets the "salary_unit" field if the given value is not nil.
+func (jc *JobCreate) SetNillableSalaryUnit(ju *job.SalaryUnit) *JobCreate {
+	if ju != nil {
+		jc.SetSalaryUnit(*ju)
+	}
 	return jc
 }
 
@@ -122,6 +137,21 @@ func (jc *JobCreate) SetNillableOwnerID(id *int) *JobCreate {
 // SetOwner sets the "owner" edge to the User entity.
 func (jc *JobCreate) SetOwner(u *User) *JobCreate {
 	return jc.SetOwnerID(u.ID)
+}
+
+// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
+func (jc *JobCreate) AddSkillIDs(ids ...int) *JobCreate {
+	jc.mutation.AddSkillIDs(ids...)
+	return jc
+}
+
+// AddSkills adds the "skills" edges to the Skill entity.
+func (jc *JobCreate) AddSkills(s ...*Skill) *JobCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return jc.AddSkillIDs(ids...)
 }
 
 // Mutation returns the JobMutation object of the builder.
@@ -184,6 +214,10 @@ func (jc *JobCreate) defaults() {
 		v := job.DefaultUpdatedAt()
 		jc.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := jc.mutation.SalaryUnit(); !ok {
+		v := job.DefaultSalaryUnit
+		jc.mutation.SetSalaryUnit(v)
+	}
 	if _, ok := jc.mutation.GetType(); !ok {
 		v := job.DefaultType
 		jc.mutation.SetType(v)
@@ -206,14 +240,32 @@ func (jc *JobCreate) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf("ent: validator failed for field \"title\": %w", err)}
 		}
 	}
-	if _, ok := jc.mutation.Location(); !ok {
-		return &ValidationError{Name: "location", err: errors.New("ent: missing required field \"location\"")}
+	if _, ok := jc.mutation.Locations(); !ok {
+		return &ValidationError{Name: "locations", err: errors.New("ent: missing required field \"locations\"")}
 	}
 	if _, ok := jc.mutation.MinSalary(); !ok {
 		return &ValidationError{Name: "min_salary", err: errors.New("ent: missing required field \"min_salary\"")}
 	}
+	if v, ok := jc.mutation.MinSalary(); ok {
+		if err := job.MinSalaryValidator(v); err != nil {
+			return &ValidationError{Name: "min_salary", err: fmt.Errorf("ent: validator failed for field \"min_salary\": %w", err)}
+		}
+	}
 	if _, ok := jc.mutation.MaxSalary(); !ok {
 		return &ValidationError{Name: "max_salary", err: errors.New("ent: missing required field \"max_salary\"")}
+	}
+	if v, ok := jc.mutation.MaxSalary(); ok {
+		if err := job.MaxSalaryValidator(v); err != nil {
+			return &ValidationError{Name: "max_salary", err: fmt.Errorf("ent: validator failed for field \"max_salary\": %w", err)}
+		}
+	}
+	if _, ok := jc.mutation.SalaryUnit(); !ok {
+		return &ValidationError{Name: "salary_unit", err: errors.New("ent: missing required field \"salary_unit\"")}
+	}
+	if v, ok := jc.mutation.SalaryUnit(); ok {
+		if err := job.SalaryUnitValidator(v); err != nil {
+			return &ValidationError{Name: "salary_unit", err: fmt.Errorf("ent: validator failed for field \"salary_unit\": %w", err)}
+		}
 	}
 	if _, ok := jc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New("ent: missing required field \"type\"")}
@@ -298,13 +350,13 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 		})
 		_node.Title = value
 	}
-	if value, ok := jc.mutation.Location(); ok {
+	if value, ok := jc.mutation.Locations(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: job.FieldLocation,
+			Column: job.FieldLocations,
 		})
-		_node.Location = value
+		_node.Locations = value
 	}
 	if value, ok := jc.mutation.MinSalary(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -321,6 +373,14 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 			Column: job.FieldMaxSalary,
 		})
 		_node.MaxSalary = value
+	}
+	if value, ok := jc.mutation.SalaryUnit(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: job.FieldSalaryUnit,
+		})
+		_node.SalaryUnit = value
 	}
 	if value, ok := jc.mutation.GetType(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -372,6 +432,25 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_jobs = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := jc.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   job.SkillsTable,
+			Columns: job.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -16,17 +16,10 @@ type Skill struct {
 // Fields of the Skill.
 func (Skill) Fields() []ent.Field {
 	return []ent.Field{
-		field.Time("created_at").
-			Default(time.Now).
-			Immutable(),
-		field.Time("updated_at").
-			Default(time.Now),
-		field.String("name").
-			NotEmpty(),
-		field.String("dark_logo_url").
-			Default(""),
-		field.String("light_logo_url").
-			Default(""),
+		field.Time("created_at").Default(time.Now).Immutable(),
+		field.Time("updated_at").Default(time.Now),
+		field.String("name").MaxLen(32).NotEmpty(),
+		field.String("logo_url").Default(""),
 	}
 }
 
@@ -34,5 +27,6 @@ func (Skill) Fields() []ent.Field {
 func (Skill) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("experiences", WorkExperience.Type),
+		edge.To("jobs", Job.Type),
 	}
 }

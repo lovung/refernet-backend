@@ -6,8 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"refernet/ent/skill"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/job"
+	"refernet/internal/ent/skill"
+	"refernet/internal/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -55,30 +56,16 @@ func (sc *SkillCreate) SetName(s string) *SkillCreate {
 	return sc
 }
 
-// SetDarkLogoURL sets the "dark_logo_url" field.
-func (sc *SkillCreate) SetDarkLogoURL(s string) *SkillCreate {
-	sc.mutation.SetDarkLogoURL(s)
+// SetLogoURL sets the "logo_url" field.
+func (sc *SkillCreate) SetLogoURL(s string) *SkillCreate {
+	sc.mutation.SetLogoURL(s)
 	return sc
 }
 
-// SetNillableDarkLogoURL sets the "dark_logo_url" field if the given value is not nil.
-func (sc *SkillCreate) SetNillableDarkLogoURL(s *string) *SkillCreate {
+// SetNillableLogoURL sets the "logo_url" field if the given value is not nil.
+func (sc *SkillCreate) SetNillableLogoURL(s *string) *SkillCreate {
 	if s != nil {
-		sc.SetDarkLogoURL(*s)
-	}
-	return sc
-}
-
-// SetLightLogoURL sets the "light_logo_url" field.
-func (sc *SkillCreate) SetLightLogoURL(s string) *SkillCreate {
-	sc.mutation.SetLightLogoURL(s)
-	return sc
-}
-
-// SetNillableLightLogoURL sets the "light_logo_url" field if the given value is not nil.
-func (sc *SkillCreate) SetNillableLightLogoURL(s *string) *SkillCreate {
-	if s != nil {
-		sc.SetLightLogoURL(*s)
+		sc.SetLogoURL(*s)
 	}
 	return sc
 }
@@ -96,6 +83,21 @@ func (sc *SkillCreate) AddExperiences(w ...*WorkExperience) *SkillCreate {
 		ids[i] = w[i].ID
 	}
 	return sc.AddExperienceIDs(ids...)
+}
+
+// AddJobIDs adds the "jobs" edge to the Job entity by IDs.
+func (sc *SkillCreate) AddJobIDs(ids ...int) *SkillCreate {
+	sc.mutation.AddJobIDs(ids...)
+	return sc
+}
+
+// AddJobs adds the "jobs" edges to the Job entity.
+func (sc *SkillCreate) AddJobs(j ...*Job) *SkillCreate {
+	ids := make([]int, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return sc.AddJobIDs(ids...)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -158,13 +160,9 @@ func (sc *SkillCreate) defaults() {
 		v := skill.DefaultUpdatedAt()
 		sc.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := sc.mutation.DarkLogoURL(); !ok {
-		v := skill.DefaultDarkLogoURL
-		sc.mutation.SetDarkLogoURL(v)
-	}
-	if _, ok := sc.mutation.LightLogoURL(); !ok {
-		v := skill.DefaultLightLogoURL
-		sc.mutation.SetLightLogoURL(v)
+	if _, ok := sc.mutation.LogoURL(); !ok {
+		v := skill.DefaultLogoURL
+		sc.mutation.SetLogoURL(v)
 	}
 }
 
@@ -184,11 +182,8 @@ func (sc *SkillCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
-	if _, ok := sc.mutation.DarkLogoURL(); !ok {
-		return &ValidationError{Name: "dark_logo_url", err: errors.New("ent: missing required field \"dark_logo_url\"")}
-	}
-	if _, ok := sc.mutation.LightLogoURL(); !ok {
-		return &ValidationError{Name: "light_logo_url", err: errors.New("ent: missing required field \"light_logo_url\"")}
+	if _, ok := sc.mutation.LogoURL(); !ok {
+		return &ValidationError{Name: "logo_url", err: errors.New("ent: missing required field \"logo_url\"")}
 	}
 	return nil
 }
@@ -241,21 +236,13 @@ func (sc *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 		})
 		_node.Name = value
 	}
-	if value, ok := sc.mutation.DarkLogoURL(); ok {
+	if value, ok := sc.mutation.LogoURL(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: skill.FieldDarkLogoURL,
+			Column: skill.FieldLogoURL,
 		})
-		_node.DarkLogoURL = value
-	}
-	if value, ok := sc.mutation.LightLogoURL(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: skill.FieldLightLogoURL,
-		})
-		_node.LightLogoURL = value
+		_node.LogoURL = value
 	}
 	if nodes := sc.mutation.ExperiencesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -268,6 +255,25 @@ func (sc *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.JobsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.JobsTable,
+			Columns: skill.JobsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: job.FieldID,
 				},
 			},
 		}

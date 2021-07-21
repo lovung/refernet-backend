@@ -5,9 +5,10 @@ package ent
 import (
 	"context"
 	"fmt"
-	"refernet/ent/job"
-	"refernet/ent/predicate"
-	"refernet/ent/user"
+	"refernet/internal/ent/job"
+	"refernet/internal/ent/predicate"
+	"refernet/internal/ent/skill"
+	"refernet/internal/ent/user"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -48,9 +49,9 @@ func (ju *JobUpdate) SetTitle(s string) *JobUpdate {
 	return ju
 }
 
-// SetLocation sets the "location" field.
-func (ju *JobUpdate) SetLocation(s string) *JobUpdate {
-	ju.mutation.SetLocation(s)
+// SetLocations sets the "locations" field.
+func (ju *JobUpdate) SetLocations(s []string) *JobUpdate {
+	ju.mutation.SetLocations(s)
 	return ju
 }
 
@@ -77,6 +78,20 @@ func (ju *JobUpdate) SetMaxSalary(u uint64) *JobUpdate {
 // AddMaxSalary adds u to the "max_salary" field.
 func (ju *JobUpdate) AddMaxSalary(u uint64) *JobUpdate {
 	ju.mutation.AddMaxSalary(u)
+	return ju
+}
+
+// SetSalaryUnit sets the "salary_unit" field.
+func (ju *JobUpdate) SetSalaryUnit(value job.SalaryUnit) *JobUpdate {
+	ju.mutation.SetSalaryUnit(value)
+	return ju
+}
+
+// SetNillableSalaryUnit sets the "salary_unit" field if the given value is not nil.
+func (ju *JobUpdate) SetNillableSalaryUnit(value *job.SalaryUnit) *JobUpdate {
+	if value != nil {
+		ju.SetSalaryUnit(*value)
+	}
 	return ju
 }
 
@@ -131,6 +146,21 @@ func (ju *JobUpdate) SetOwner(u *User) *JobUpdate {
 	return ju.SetOwnerID(u.ID)
 }
 
+// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
+func (ju *JobUpdate) AddSkillIDs(ids ...int) *JobUpdate {
+	ju.mutation.AddSkillIDs(ids...)
+	return ju
+}
+
+// AddSkills adds the "skills" edges to the Skill entity.
+func (ju *JobUpdate) AddSkills(s ...*Skill) *JobUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return ju.AddSkillIDs(ids...)
+}
+
 // Mutation returns the JobMutation object of the builder.
 func (ju *JobUpdate) Mutation() *JobMutation {
 	return ju.mutation
@@ -140,6 +170,27 @@ func (ju *JobUpdate) Mutation() *JobMutation {
 func (ju *JobUpdate) ClearOwner() *JobUpdate {
 	ju.mutation.ClearOwner()
 	return ju
+}
+
+// ClearSkills clears all "skills" edges to the Skill entity.
+func (ju *JobUpdate) ClearSkills() *JobUpdate {
+	ju.mutation.ClearSkills()
+	return ju
+}
+
+// RemoveSkillIDs removes the "skills" edge to Skill entities by IDs.
+func (ju *JobUpdate) RemoveSkillIDs(ids ...int) *JobUpdate {
+	ju.mutation.RemoveSkillIDs(ids...)
+	return ju
+}
+
+// RemoveSkills removes "skills" edges to Skill entities.
+func (ju *JobUpdate) RemoveSkills(s ...*Skill) *JobUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return ju.RemoveSkillIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -206,6 +257,21 @@ func (ju *JobUpdate) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf("ent: validator failed for field \"title\": %w", err)}
 		}
 	}
+	if v, ok := ju.mutation.MinSalary(); ok {
+		if err := job.MinSalaryValidator(v); err != nil {
+			return &ValidationError{Name: "min_salary", err: fmt.Errorf("ent: validator failed for field \"min_salary\": %w", err)}
+		}
+	}
+	if v, ok := ju.mutation.MaxSalary(); ok {
+		if err := job.MaxSalaryValidator(v); err != nil {
+			return &ValidationError{Name: "max_salary", err: fmt.Errorf("ent: validator failed for field \"max_salary\": %w", err)}
+		}
+	}
+	if v, ok := ju.mutation.SalaryUnit(); ok {
+		if err := job.SalaryUnitValidator(v); err != nil {
+			return &ValidationError{Name: "salary_unit", err: fmt.Errorf("ent: validator failed for field \"salary_unit\": %w", err)}
+		}
+	}
 	if v, ok := ju.mutation.GetType(); ok {
 		if err := job.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
@@ -261,11 +327,11 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: job.FieldTitle,
 		})
 	}
-	if value, ok := ju.mutation.Location(); ok {
+	if value, ok := ju.mutation.Locations(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: job.FieldLocation,
+			Column: job.FieldLocations,
 		})
 	}
 	if value, ok := ju.mutation.MinSalary(); ok {
@@ -294,6 +360,13 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeUint64,
 			Value:  value,
 			Column: job.FieldMaxSalary,
+		})
+	}
+	if value, ok := ju.mutation.SalaryUnit(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: job.FieldSalaryUnit,
 		})
 	}
 	if value, ok := ju.mutation.GetType(); ok {
@@ -359,6 +432,60 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ju.mutation.SkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   job.SkillsTable,
+			Columns: job.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ju.mutation.RemovedSkillsIDs(); len(nodes) > 0 && !ju.mutation.SkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   job.SkillsTable,
+			Columns: job.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ju.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   job.SkillsTable,
+			Columns: job.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ju.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{job.Label}
@@ -398,9 +525,9 @@ func (juo *JobUpdateOne) SetTitle(s string) *JobUpdateOne {
 	return juo
 }
 
-// SetLocation sets the "location" field.
-func (juo *JobUpdateOne) SetLocation(s string) *JobUpdateOne {
-	juo.mutation.SetLocation(s)
+// SetLocations sets the "locations" field.
+func (juo *JobUpdateOne) SetLocations(s []string) *JobUpdateOne {
+	juo.mutation.SetLocations(s)
 	return juo
 }
 
@@ -427,6 +554,20 @@ func (juo *JobUpdateOne) SetMaxSalary(u uint64) *JobUpdateOne {
 // AddMaxSalary adds u to the "max_salary" field.
 func (juo *JobUpdateOne) AddMaxSalary(u uint64) *JobUpdateOne {
 	juo.mutation.AddMaxSalary(u)
+	return juo
+}
+
+// SetSalaryUnit sets the "salary_unit" field.
+func (juo *JobUpdateOne) SetSalaryUnit(ju job.SalaryUnit) *JobUpdateOne {
+	juo.mutation.SetSalaryUnit(ju)
+	return juo
+}
+
+// SetNillableSalaryUnit sets the "salary_unit" field if the given value is not nil.
+func (juo *JobUpdateOne) SetNillableSalaryUnit(ju *job.SalaryUnit) *JobUpdateOne {
+	if ju != nil {
+		juo.SetSalaryUnit(*ju)
+	}
 	return juo
 }
 
@@ -481,6 +622,21 @@ func (juo *JobUpdateOne) SetOwner(u *User) *JobUpdateOne {
 	return juo.SetOwnerID(u.ID)
 }
 
+// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
+func (juo *JobUpdateOne) AddSkillIDs(ids ...int) *JobUpdateOne {
+	juo.mutation.AddSkillIDs(ids...)
+	return juo
+}
+
+// AddSkills adds the "skills" edges to the Skill entity.
+func (juo *JobUpdateOne) AddSkills(s ...*Skill) *JobUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return juo.AddSkillIDs(ids...)
+}
+
 // Mutation returns the JobMutation object of the builder.
 func (juo *JobUpdateOne) Mutation() *JobMutation {
 	return juo.mutation
@@ -490,6 +646,27 @@ func (juo *JobUpdateOne) Mutation() *JobMutation {
 func (juo *JobUpdateOne) ClearOwner() *JobUpdateOne {
 	juo.mutation.ClearOwner()
 	return juo
+}
+
+// ClearSkills clears all "skills" edges to the Skill entity.
+func (juo *JobUpdateOne) ClearSkills() *JobUpdateOne {
+	juo.mutation.ClearSkills()
+	return juo
+}
+
+// RemoveSkillIDs removes the "skills" edge to Skill entities by IDs.
+func (juo *JobUpdateOne) RemoveSkillIDs(ids ...int) *JobUpdateOne {
+	juo.mutation.RemoveSkillIDs(ids...)
+	return juo
+}
+
+// RemoveSkills removes "skills" edges to Skill entities.
+func (juo *JobUpdateOne) RemoveSkills(s ...*Skill) *JobUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return juo.RemoveSkillIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -561,6 +738,21 @@ func (juo *JobUpdateOne) check() error {
 	if v, ok := juo.mutation.Title(); ok {
 		if err := job.TitleValidator(v); err != nil {
 			return &ValidationError{Name: "title", err: fmt.Errorf("ent: validator failed for field \"title\": %w", err)}
+		}
+	}
+	if v, ok := juo.mutation.MinSalary(); ok {
+		if err := job.MinSalaryValidator(v); err != nil {
+			return &ValidationError{Name: "min_salary", err: fmt.Errorf("ent: validator failed for field \"min_salary\": %w", err)}
+		}
+	}
+	if v, ok := juo.mutation.MaxSalary(); ok {
+		if err := job.MaxSalaryValidator(v); err != nil {
+			return &ValidationError{Name: "max_salary", err: fmt.Errorf("ent: validator failed for field \"max_salary\": %w", err)}
+		}
+	}
+	if v, ok := juo.mutation.SalaryUnit(); ok {
+		if err := job.SalaryUnitValidator(v); err != nil {
+			return &ValidationError{Name: "salary_unit", err: fmt.Errorf("ent: validator failed for field \"salary_unit\": %w", err)}
 		}
 	}
 	if v, ok := juo.mutation.GetType(); ok {
@@ -635,11 +827,11 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 			Column: job.FieldTitle,
 		})
 	}
-	if value, ok := juo.mutation.Location(); ok {
+	if value, ok := juo.mutation.Locations(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: job.FieldLocation,
+			Column: job.FieldLocations,
 		})
 	}
 	if value, ok := juo.mutation.MinSalary(); ok {
@@ -668,6 +860,13 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 			Type:   field.TypeUint64,
 			Value:  value,
 			Column: job.FieldMaxSalary,
+		})
+	}
+	if value, ok := juo.mutation.SalaryUnit(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: job.FieldSalaryUnit,
 		})
 	}
 	if value, ok := juo.mutation.GetType(); ok {
@@ -725,6 +924,60 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if juo.mutation.SkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   job.SkillsTable,
+			Columns: job.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := juo.mutation.RemovedSkillsIDs(); len(nodes) > 0 && !juo.mutation.SkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   job.SkillsTable,
+			Columns: job.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := juo.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   job.SkillsTable,
+			Columns: job.SkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skill.FieldID,
 				},
 			},
 		}

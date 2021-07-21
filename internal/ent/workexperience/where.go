@@ -3,7 +3,7 @@
 package workexperience
 
 import (
-	"refernet/ent/predicate"
+	"refernet/internal/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"

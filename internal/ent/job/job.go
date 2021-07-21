@@ -18,12 +18,14 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
-	// FieldLocation holds the string denoting the location field in the database.
-	FieldLocation = "location"
+	// FieldLocations holds the string denoting the locations field in the database.
+	FieldLocations = "locations"
 	// FieldMinSalary holds the string denoting the min_salary field in the database.
 	FieldMinSalary = "min_salary"
 	// FieldMaxSalary holds the string denoting the max_salary field in the database.
 	FieldMaxSalary = "max_salary"
+	// FieldSalaryUnit holds the string denoting the salary_unit field in the database.
+	FieldSalaryUnit = "salary_unit"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// FieldRequirements holds the string denoting the requirements field in the database.
@@ -34,6 +36,8 @@ const (
 	FieldBenefits = "benefits"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
+	// EdgeSkills holds the string denoting the skills edge name in mutations.
+	EdgeSkills = "skills"
 	// Table holds the table name of the job in the database.
 	Table = "jobs"
 	// OwnerTable is the table the holds the owner relation/edge.
@@ -43,6 +47,11 @@ const (
 	OwnerInverseTable = "users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "user_jobs"
+	// SkillsTable is the table the holds the skills relation/edge. The primary key declared below.
+	SkillsTable = "skill_jobs"
+	// SkillsInverseTable is the table name for the Skill entity.
+	// It exists in this package in order to avoid circular dependency with the "skill" package.
+	SkillsInverseTable = "skills"
 )
 
 // Columns holds all SQL columns for job fields.
@@ -51,9 +60,10 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldTitle,
-	FieldLocation,
+	FieldLocations,
 	FieldMinSalary,
 	FieldMaxSalary,
+	FieldSalaryUnit,
 	FieldType,
 	FieldRequirements,
 	FieldResponsibilities,
@@ -65,6 +75,12 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"user_jobs",
 }
+
+var (
+	// SkillsPrimaryKey and SkillsColumn2 are the table columns denoting the
+	// primary key for the skills relation (M2M).
+	SkillsPrimaryKey = []string{"skill_id", "job_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -88,6 +104,10 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
+	// MinSalaryValidator is a validator for the "min_salary" field. It is called by the builders before save.
+	MinSalaryValidator func(uint64) error
+	// MaxSalaryValidator is a validator for the "max_salary" field. It is called by the builders before save.
+	MaxSalaryValidator func(uint64) error
 	// RequirementsValidator is a validator for the "requirements" field. It is called by the builders before save.
 	RequirementsValidator func(string) error
 	// ResponsibilitiesValidator is a validator for the "responsibilities" field. It is called by the builders before save.
@@ -95,6 +115,32 @@ var (
 	// BenefitsValidator is a validator for the "benefits" field. It is called by the builders before save.
 	BenefitsValidator func(string) error
 )
+
+// SalaryUnit defines the type for the "salary_unit" enum field.
+type SalaryUnit string
+
+// SalaryUnitVND is the default value of the SalaryUnit enum.
+const DefaultSalaryUnit = SalaryUnitVND
+
+// SalaryUnit values.
+const (
+	SalaryUnitVND SalaryUnit = "VND"
+	SalaryUnitUSD SalaryUnit = "USD"
+)
+
+func (su SalaryUnit) String() string {
+	return string(su)
+}
+
+// SalaryUnitValidator is a validator for the "salary_unit" field enum values. It is called by the builders before save.
+func SalaryUnitValidator(su SalaryUnit) error {
+	switch su {
+	case SalaryUnitVND, SalaryUnitUSD:
+		return nil
+	default:
+		return fmt.Errorf("job: invalid enum value for salary_unit field: %q", su)
+	}
+}
 
 // Type defines the type for the "type" enum field.
 type Type string

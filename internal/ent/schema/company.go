@@ -16,23 +16,18 @@ type Company struct {
 // Fields of the Company.
 func (Company) Fields() []ent.Field {
 	return []ent.Field{
-		field.Time("created_at").
-			Default(time.Now).
-			Immutable(),
-		field.Time("updated_at").
-			Default(time.Now),
-		field.String("name").
-			NotEmpty(),
-		field.Text("overview"),
-		field.String("website"),
-		field.Strings("industry"),
-		field.Strings("location"),
-		field.String("logo_url"),
+		field.Time("created_at").Default(time.Now).Immutable(),
+		field.Time("updated_at").Default(time.Now),
+		field.String("name").NotEmpty(),
+		field.Text("overview").MaxLen(1024),
+		field.String("website").MaxLen(128),
+		field.Strings("industries"),
+		field.Strings("locations"),
+		field.String("logo_url").MaxLen(128),
 		field.Enum("size").
 			Values("startup", "small", "medium", "big", "huge").
 			Default("medium"),
-		field.Int("founded_at").
-			Positive(),
+		field.Int("founded_at").Positive(),
 	}
 }
 

@@ -17,12 +17,12 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldDarkLogoURL holds the string denoting the dark_logo_url field in the database.
-	FieldDarkLogoURL = "dark_logo_url"
-	// FieldLightLogoURL holds the string denoting the light_logo_url field in the database.
-	FieldLightLogoURL = "light_logo_url"
+	// FieldLogoURL holds the string denoting the logo_url field in the database.
+	FieldLogoURL = "logo_url"
 	// EdgeExperiences holds the string denoting the experiences edge name in mutations.
 	EdgeExperiences = "experiences"
+	// EdgeJobs holds the string denoting the jobs edge name in mutations.
+	EdgeJobs = "jobs"
 	// Table holds the table name of the skill in the database.
 	Table = "skills"
 	// ExperiencesTable is the table the holds the experiences relation/edge. The primary key declared below.
@@ -30,6 +30,11 @@ const (
 	// ExperiencesInverseTable is the table name for the WorkExperience entity.
 	// It exists in this package in order to avoid circular dependency with the "workexperience" package.
 	ExperiencesInverseTable = "work_experiences"
+	// JobsTable is the table the holds the jobs relation/edge. The primary key declared below.
+	JobsTable = "skill_jobs"
+	// JobsInverseTable is the table name for the Job entity.
+	// It exists in this package in order to avoid circular dependency with the "job" package.
+	JobsInverseTable = "jobs"
 )
 
 // Columns holds all SQL columns for skill fields.
@@ -38,14 +43,16 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldName,
-	FieldDarkLogoURL,
-	FieldLightLogoURL,
+	FieldLogoURL,
 }
 
 var (
 	// ExperiencesPrimaryKey and ExperiencesColumn2 are the table columns denoting the
 	// primary key for the experiences relation (M2M).
 	ExperiencesPrimaryKey = []string{"skill_id", "work_experience_id"}
+	// JobsPrimaryKey and JobsColumn2 are the table columns denoting the
+	// primary key for the jobs relation (M2M).
+	JobsPrimaryKey = []string{"skill_id", "job_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -65,8 +72,6 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// DefaultDarkLogoURL holds the default value on creation for the "dark_logo_url" field.
-	DefaultDarkLogoURL string
-	// DefaultLightLogoURL holds the default value on creation for the "light_logo_url" field.
-	DefaultLightLogoURL string
+	// DefaultLogoURL holds the default value on creation for the "logo_url" field.
+	DefaultLogoURL string
 )

@@ -16,24 +16,18 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.Time("created_at").
-			Default(time.Now).
-			Immutable(),
-		field.Time("updated_at").
-			Default(time.Now),
-		field.String("username").
-			NotEmpty(),
-		field.String("fullname").
-			NotEmpty(),
-		field.String("email").NotEmpty(),
-		field.String("phone"),
-		field.String("bio"),
-		field.Text("intro"),
-		field.String("github_profile"),
-		field.String("profile_picture_url"),
-		field.Enum("status").
-			Values("new", "verified", "inactive").
-			Default("new"),
+		field.Time("created_at").Default(time.Now).Immutable(),
+		field.Time("updated_at").Default(time.Now),
+		field.String("username").MaxLen(128).NotEmpty(),
+		field.String("fullname").MaxLen(128).NotEmpty(),
+		field.String("password").MaxLen(256).NotEmpty(),
+		field.String("email").MaxLen(128).NotEmpty(),
+		field.String("phone").MaxLen(20),
+		field.String("bio").MaxLen(64),
+		field.Text("intro").MaxLen(1024),
+		field.String("github_profile").MaxLen(128),
+		field.String("profile_picture_url").MaxLen(128),
+		field.Enum("status").Values("new", "verified", "inactive").Default("new"),
 	}
 }
 

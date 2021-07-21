@@ -5,9 +5,10 @@ package ent
 import (
 	"context"
 	"fmt"
-	"refernet/ent/predicate"
-	"refernet/ent/skill"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/job"
+	"refernet/internal/ent/predicate"
+	"refernet/internal/ent/skill"
+	"refernet/internal/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -48,30 +49,16 @@ func (su *SkillUpdate) SetName(s string) *SkillUpdate {
 	return su
 }
 
-// SetDarkLogoURL sets the "dark_logo_url" field.
-func (su *SkillUpdate) SetDarkLogoURL(s string) *SkillUpdate {
-	su.mutation.SetDarkLogoURL(s)
+// SetLogoURL sets the "logo_url" field.
+func (su *SkillUpdate) SetLogoURL(s string) *SkillUpdate {
+	su.mutation.SetLogoURL(s)
 	return su
 }
 
-// SetNillableDarkLogoURL sets the "dark_logo_url" field if the given value is not nil.
-func (su *SkillUpdate) SetNillableDarkLogoURL(s *string) *SkillUpdate {
+// SetNillableLogoURL sets the "logo_url" field if the given value is not nil.
+func (su *SkillUpdate) SetNillableLogoURL(s *string) *SkillUpdate {
 	if s != nil {
-		su.SetDarkLogoURL(*s)
-	}
-	return su
-}
-
-// SetLightLogoURL sets the "light_logo_url" field.
-func (su *SkillUpdate) SetLightLogoURL(s string) *SkillUpdate {
-	su.mutation.SetLightLogoURL(s)
-	return su
-}
-
-// SetNillableLightLogoURL sets the "light_logo_url" field if the given value is not nil.
-func (su *SkillUpdate) SetNillableLightLogoURL(s *string) *SkillUpdate {
-	if s != nil {
-		su.SetLightLogoURL(*s)
+		su.SetLogoURL(*s)
 	}
 	return su
 }
@@ -89,6 +76,21 @@ func (su *SkillUpdate) AddExperiences(w ...*WorkExperience) *SkillUpdate {
 		ids[i] = w[i].ID
 	}
 	return su.AddExperienceIDs(ids...)
+}
+
+// AddJobIDs adds the "jobs" edge to the Job entity by IDs.
+func (su *SkillUpdate) AddJobIDs(ids ...int) *SkillUpdate {
+	su.mutation.AddJobIDs(ids...)
+	return su
+}
+
+// AddJobs adds the "jobs" edges to the Job entity.
+func (su *SkillUpdate) AddJobs(j ...*Job) *SkillUpdate {
+	ids := make([]int, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return su.AddJobIDs(ids...)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -115,6 +117,27 @@ func (su *SkillUpdate) RemoveExperiences(w ...*WorkExperience) *SkillUpdate {
 		ids[i] = w[i].ID
 	}
 	return su.RemoveExperienceIDs(ids...)
+}
+
+// ClearJobs clears all "jobs" edges to the Job entity.
+func (su *SkillUpdate) ClearJobs() *SkillUpdate {
+	su.mutation.ClearJobs()
+	return su
+}
+
+// RemoveJobIDs removes the "jobs" edge to Job entities by IDs.
+func (su *SkillUpdate) RemoveJobIDs(ids ...int) *SkillUpdate {
+	su.mutation.RemoveJobIDs(ids...)
+	return su
+}
+
+// RemoveJobs removes "jobs" edges to Job entities.
+func (su *SkillUpdate) RemoveJobs(j ...*Job) *SkillUpdate {
+	ids := make([]int, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return su.RemoveJobIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -216,18 +239,11 @@ func (su *SkillUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: skill.FieldName,
 		})
 	}
-	if value, ok := su.mutation.DarkLogoURL(); ok {
+	if value, ok := su.mutation.LogoURL(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: skill.FieldDarkLogoURL,
-		})
-	}
-	if value, ok := su.mutation.LightLogoURL(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: skill.FieldLightLogoURL,
+			Column: skill.FieldLogoURL,
 		})
 	}
 	if su.mutation.ExperiencesCleared() {
@@ -284,6 +300,60 @@ func (su *SkillUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if su.mutation.JobsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.JobsTable,
+			Columns: skill.JobsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: job.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedJobsIDs(); len(nodes) > 0 && !su.mutation.JobsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.JobsTable,
+			Columns: skill.JobsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: job.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.JobsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.JobsTable,
+			Columns: skill.JobsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: job.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{skill.Label}
@@ -323,30 +393,16 @@ func (suo *SkillUpdateOne) SetName(s string) *SkillUpdateOne {
 	return suo
 }
 
-// SetDarkLogoURL sets the "dark_logo_url" field.
-func (suo *SkillUpdateOne) SetDarkLogoURL(s string) *SkillUpdateOne {
-	suo.mutation.SetDarkLogoURL(s)
+// SetLogoURL sets the "logo_url" field.
+func (suo *SkillUpdateOne) SetLogoURL(s string) *SkillUpdateOne {
+	suo.mutation.SetLogoURL(s)
 	return suo
 }
 
-// SetNillableDarkLogoURL sets the "dark_logo_url" field if the given value is not nil.
-func (suo *SkillUpdateOne) SetNillableDarkLogoURL(s *string) *SkillUpdateOne {
+// SetNillableLogoURL sets the "logo_url" field if the given value is not nil.
+func (suo *SkillUpdateOne) SetNillableLogoURL(s *string) *SkillUpdateOne {
 	if s != nil {
-		suo.SetDarkLogoURL(*s)
-	}
-	return suo
-}
-
-// SetLightLogoURL sets the "light_logo_url" field.
-func (suo *SkillUpdateOne) SetLightLogoURL(s string) *SkillUpdateOne {
-	suo.mutation.SetLightLogoURL(s)
-	return suo
-}
-
-// SetNillableLightLogoURL sets the "light_logo_url" field if the given value is not nil.
-func (suo *SkillUpdateOne) SetNillableLightLogoURL(s *string) *SkillUpdateOne {
-	if s != nil {
-		suo.SetLightLogoURL(*s)
+		suo.SetLogoURL(*s)
 	}
 	return suo
 }
@@ -364,6 +420,21 @@ func (suo *SkillUpdateOne) AddExperiences(w ...*WorkExperience) *SkillUpdateOne 
 		ids[i] = w[i].ID
 	}
 	return suo.AddExperienceIDs(ids...)
+}
+
+// AddJobIDs adds the "jobs" edge to the Job entity by IDs.
+func (suo *SkillUpdateOne) AddJobIDs(ids ...int) *SkillUpdateOne {
+	suo.mutation.AddJobIDs(ids...)
+	return suo
+}
+
+// AddJobs adds the "jobs" edges to the Job entity.
+func (suo *SkillUpdateOne) AddJobs(j ...*Job) *SkillUpdateOne {
+	ids := make([]int, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return suo.AddJobIDs(ids...)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -390,6 +461,27 @@ func (suo *SkillUpdateOne) RemoveExperiences(w ...*WorkExperience) *SkillUpdateO
 		ids[i] = w[i].ID
 	}
 	return suo.RemoveExperienceIDs(ids...)
+}
+
+// ClearJobs clears all "jobs" edges to the Job entity.
+func (suo *SkillUpdateOne) ClearJobs() *SkillUpdateOne {
+	suo.mutation.ClearJobs()
+	return suo
+}
+
+// RemoveJobIDs removes the "jobs" edge to Job entities by IDs.
+func (suo *SkillUpdateOne) RemoveJobIDs(ids ...int) *SkillUpdateOne {
+	suo.mutation.RemoveJobIDs(ids...)
+	return suo
+}
+
+// RemoveJobs removes "jobs" edges to Job entities.
+func (suo *SkillUpdateOne) RemoveJobs(j ...*Job) *SkillUpdateOne {
+	ids := make([]int, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return suo.RemoveJobIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -515,18 +607,11 @@ func (suo *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error
 			Column: skill.FieldName,
 		})
 	}
-	if value, ok := suo.mutation.DarkLogoURL(); ok {
+	if value, ok := suo.mutation.LogoURL(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: skill.FieldDarkLogoURL,
-		})
-	}
-	if value, ok := suo.mutation.LightLogoURL(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: skill.FieldLightLogoURL,
+			Column: skill.FieldLogoURL,
 		})
 	}
 	if suo.mutation.ExperiencesCleared() {
@@ -575,6 +660,60 @@ func (suo *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: workexperience.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.JobsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.JobsTable,
+			Columns: skill.JobsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: job.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedJobsIDs(); len(nodes) > 0 && !suo.mutation.JobsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.JobsTable,
+			Columns: skill.JobsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: job.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.JobsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.JobsTable,
+			Columns: skill.JobsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: job.FieldID,
 				},
 			},
 		}

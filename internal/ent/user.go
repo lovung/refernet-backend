@@ -4,7 +4,7 @@ package ent
 
 import (
 	"fmt"
-	"refernet/ent/user"
+	"refernet/internal/ent/user"
 	"strings"
 	"time"
 
@@ -24,6 +24,8 @@ type User struct {
 	Username string `json:"username,omitempty"`
 	// Fullname holds the value of the "fullname" field.
 	Fullname string `json:"fullname,omitempty"`
+	// Password holds the value of the "password" field.
+	Password string `json:"password,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// Phone holds the value of the "phone" field.
@@ -79,7 +81,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUsername, user.FieldFullname, user.FieldEmail, user.FieldPhone, user.FieldBio, user.FieldIntro, user.FieldGithubProfile, user.FieldProfilePictureURL, user.FieldStatus:
+		case user.FieldUsername, user.FieldFullname, user.FieldPassword, user.FieldEmail, user.FieldPhone, user.FieldBio, user.FieldIntro, user.FieldGithubProfile, user.FieldProfilePictureURL, user.FieldStatus:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -127,6 +129,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field fullname", values[i])
 			} else if value.Valid {
 				u.Fullname = value.String
+			}
+		case user.FieldPassword:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field password", values[i])
+			} else if value.Valid {
+				u.Password = value.String
 			}
 		case user.FieldEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -216,6 +224,8 @@ func (u *User) String() string {
 	builder.WriteString(u.Username)
 	builder.WriteString(", fullname=")
 	builder.WriteString(u.Fullname)
+	builder.WriteString(", password=")
+	builder.WriteString(u.Password)
 	builder.WriteString(", email=")
 	builder.WriteString(u.Email)
 	builder.WriteString(", phone=")

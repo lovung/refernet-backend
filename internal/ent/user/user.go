@@ -20,6 +20,8 @@ const (
 	FieldUsername = "username"
 	// FieldFullname holds the string denoting the fullname field in the database.
 	FieldFullname = "fullname"
+	// FieldPassword holds the string denoting the password field in the database.
+	FieldPassword = "password"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
 	// FieldPhone holds the string denoting the phone field in the database.
@@ -63,6 +65,7 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldUsername,
 	FieldFullname,
+	FieldPassword,
 	FieldEmail,
 	FieldPhone,
 	FieldBio,
@@ -91,8 +94,20 @@ var (
 	UsernameValidator func(string) error
 	// FullnameValidator is a validator for the "fullname" field. It is called by the builders before save.
 	FullnameValidator func(string) error
+	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
+	PasswordValidator func(string) error
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
+	// PhoneValidator is a validator for the "phone" field. It is called by the builders before save.
+	PhoneValidator func(string) error
+	// BioValidator is a validator for the "bio" field. It is called by the builders before save.
+	BioValidator func(string) error
+	// IntroValidator is a validator for the "intro" field. It is called by the builders before save.
+	IntroValidator func(string) error
+	// GithubProfileValidator is a validator for the "github_profile" field. It is called by the builders before save.
+	GithubProfileValidator func(string) error
+	// ProfilePictureURLValidator is a validator for the "profile_picture_url" field. It is called by the builders before save.
+	ProfilePictureURLValidator func(string) error
 )
 
 // Status defines the type for the "status" enum field.

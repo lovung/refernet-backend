@@ -3,7 +3,7 @@
 package job
 
 import (
-	"refernet/ent/predicate"
+	"refernet/internal/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -111,13 +111,6 @@ func UpdatedAt(v time.Time) predicate.Job {
 func Title(v string) predicate.Job {
 	return predicate.Job(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldTitle), v))
-	})
-}
-
-// Location applies equality check predicate on the "location" field. It's identical to LocationEQ.
-func Location(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLocation), v))
 	})
 }
 
@@ -419,117 +412,6 @@ func TitleContainsFold(v string) predicate.Job {
 	})
 }
 
-// LocationEQ applies the EQ predicate on the "location" field.
-func LocationEQ(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLocation), v))
-	})
-}
-
-// LocationNEQ applies the NEQ predicate on the "location" field.
-func LocationNEQ(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldLocation), v))
-	})
-}
-
-// LocationIn applies the In predicate on the "location" field.
-func LocationIn(vs ...string) predicate.Job {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Job(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldLocation), v...))
-	})
-}
-
-// LocationNotIn applies the NotIn predicate on the "location" field.
-func LocationNotIn(vs ...string) predicate.Job {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Job(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldLocation), v...))
-	})
-}
-
-// LocationGT applies the GT predicate on the "location" field.
-func LocationGT(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldLocation), v))
-	})
-}
-
-// LocationGTE applies the GTE predicate on the "location" field.
-func LocationGTE(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldLocation), v))
-	})
-}
-
-// LocationLT applies the LT predicate on the "location" field.
-func LocationLT(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldLocation), v))
-	})
-}
-
-// LocationLTE applies the LTE predicate on the "location" field.
-func LocationLTE(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldLocation), v))
-	})
-}
-
-// LocationContains applies the Contains predicate on the "location" field.
-func LocationContains(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldLocation), v))
-	})
-}
-
-// LocationHasPrefix applies the HasPrefix predicate on the "location" field.
-func LocationHasPrefix(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldLocation), v))
-	})
-}
-
-// LocationHasSuffix applies the HasSuffix predicate on the "location" field.
-func LocationHasSuffix(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldLocation), v))
-	})
-}
-
-// LocationEqualFold applies the EqualFold predicate on the "location" field.
-func LocationEqualFold(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldLocation), v))
-	})
-}
-
-// LocationContainsFold applies the ContainsFold predicate on the "location" field.
-func LocationContainsFold(v string) predicate.Job {
-	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldLocation), v))
-	})
-}
-
 // MinSalaryEQ applies the EQ predicate on the "min_salary" field.
 func MinSalaryEQ(v uint64) predicate.Job {
 	return predicate.Job(func(s *sql.Selector) {
@@ -679,6 +561,54 @@ func MaxSalaryLT(v uint64) predicate.Job {
 func MaxSalaryLTE(v uint64) predicate.Job {
 	return predicate.Job(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldMaxSalary), v))
+	})
+}
+
+// SalaryUnitEQ applies the EQ predicate on the "salary_unit" field.
+func SalaryUnitEQ(v SalaryUnit) predicate.Job {
+	return predicate.Job(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSalaryUnit), v))
+	})
+}
+
+// SalaryUnitNEQ applies the NEQ predicate on the "salary_unit" field.
+func SalaryUnitNEQ(v SalaryUnit) predicate.Job {
+	return predicate.Job(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldSalaryUnit), v))
+	})
+}
+
+// SalaryUnitIn applies the In predicate on the "salary_unit" field.
+func SalaryUnitIn(vs ...SalaryUnit) predicate.Job {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Job(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldSalaryUnit), v...))
+	})
+}
+
+// SalaryUnitNotIn applies the NotIn predicate on the "salary_unit" field.
+func SalaryUnitNotIn(vs ...SalaryUnit) predicate.Job {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Job(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldSalaryUnit), v...))
 	})
 }
 
@@ -1082,6 +1012,34 @@ func HasOwnerWith(preds ...predicate.User) predicate.Job {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(OwnerInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSkills applies the HasEdge predicate on the "skills" edge.
+func HasSkills() predicate.Job {
+	return predicate.Job(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SkillsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, SkillsTable, SkillsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSkillsWith applies the HasEdge predicate on the "skills" edge with a given conditions (other predicates).
+func HasSkillsWith(preds ...predicate.Skill) predicate.Job {
+	return predicate.Job(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SkillsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, SkillsTable, SkillsPrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

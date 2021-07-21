@@ -8,9 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"refernet/ent/predicate"
-	"refernet/ent/skill"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/job"
+	"refernet/internal/ent/predicate"
+	"refernet/internal/ent/skill"
+	"refernet/internal/ent/workexperience"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,6 +29,7 @@ type SkillQuery struct {
 	predicates []predicate.Skill
 	// eager-loading edges.
 	withExperiences *WorkExperienceQuery
+	withJobs        *JobQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -79,6 +81,28 @@ func (sq *SkillQuery) QueryExperiences() *WorkExperienceQuery {
 			sqlgraph.From(skill.Table, skill.FieldID, selector),
 			sqlgraph.To(workexperience.Table, workexperience.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, skill.ExperiencesTable, skill.ExperiencesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryJobs chains the current query on the "jobs" edge.
+func (sq *SkillQuery) QueryJobs() *JobQuery {
+	query := &JobQuery{config: sq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skill.Table, skill.FieldID, selector),
+			sqlgraph.To(job.Table, job.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, skill.JobsTable, skill.JobsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 		return fromU, nil
@@ -268,6 +292,7 @@ func (sq *SkillQuery) Clone() *SkillQuery {
 		order:           append([]OrderFunc{}, sq.order...),
 		predicates:      append([]predicate.Skill{}, sq.predicates...),
 		withExperiences: sq.withExperiences.Clone(),
+		withJobs:        sq.withJobs.Clone(),
 		// clone intermediate query.
 		sql:  sq.sql.Clone(),
 		path: sq.path,
@@ -282,6 +307,17 @@ func (sq *SkillQuery) WithExperiences(opts ...func(*WorkExperienceQuery)) *Skill
 		opt(query)
 	}
 	sq.withExperiences = query
+	return sq
+}
+
+// WithJobs tells the query-builder to eager-load the nodes that are connected to
+// the "jobs" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SkillQuery) WithJobs(opts ...func(*JobQuery)) *SkillQuery {
+	query := &JobQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withJobs = query
 	return sq
 }
 
@@ -350,8 +386,9 @@ func (sq *SkillQuery) sqlAll(ctx context.Context) ([]*Skill, error) {
 	var (
 		nodes       = []*Skill{}
 		_spec       = sq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			sq.withExperiences != nil,
+			sq.withJobs != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -435,6 +472,71 @@ func (sq *SkillQuery) sqlAll(ctx context.Context) ([]*Skill, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.Experiences = append(nodes[i].Edges.Experiences, n)
+			}
+		}
+	}
+
+	if query := sq.withJobs; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*Skill, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+			node.Edges.Jobs = []*Job{}
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*Skill)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: false,
+				Table:   skill.JobsTable,
+				Columns: skill.JobsPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(skill.JobsPrimaryKey[0], fks...))
+			},
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				if _, ok := edges[inValue]; !ok {
+					edgeids = append(edgeids, inValue)
+				}
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, sq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "jobs": %w`, err)
+		}
+		query.Where(job.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "jobs" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Jobs = append(nodes[i].Edges.Jobs, n)
 			}
 		}
 	}

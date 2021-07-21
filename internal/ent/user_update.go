@@ -5,10 +5,10 @@ package ent
 import (
 	"context"
 	"fmt"
-	"refernet/ent/job"
-	"refernet/ent/predicate"
-	"refernet/ent/user"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/job"
+	"refernet/internal/ent/predicate"
+	"refernet/internal/ent/user"
+	"refernet/internal/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -52,6 +52,12 @@ func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
 // SetFullname sets the "fullname" field.
 func (uu *UserUpdate) SetFullname(s string) *UserUpdate {
 	uu.mutation.SetFullname(s)
+	return uu
+}
+
+// SetPassword sets the "password" field.
+func (uu *UserUpdate) SetPassword(s string) *UserUpdate {
+	uu.mutation.SetPassword(s)
 	return uu
 }
 
@@ -251,9 +257,39 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "fullname", err: fmt.Errorf("ent: validator failed for field \"fullname\": %w", err)}
 		}
 	}
+	if v, ok := uu.mutation.Password(); ok {
+		if err := user.PasswordValidator(v); err != nil {
+			return &ValidationError{Name: "password", err: fmt.Errorf("ent: validator failed for field \"password\": %w", err)}
+		}
+	}
 	if v, ok := uu.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
+		}
+	}
+	if v, ok := uu.mutation.Phone(); ok {
+		if err := user.PhoneValidator(v); err != nil {
+			return &ValidationError{Name: "phone", err: fmt.Errorf("ent: validator failed for field \"phone\": %w", err)}
+		}
+	}
+	if v, ok := uu.mutation.Bio(); ok {
+		if err := user.BioValidator(v); err != nil {
+			return &ValidationError{Name: "bio", err: fmt.Errorf("ent: validator failed for field \"bio\": %w", err)}
+		}
+	}
+	if v, ok := uu.mutation.Intro(); ok {
+		if err := user.IntroValidator(v); err != nil {
+			return &ValidationError{Name: "intro", err: fmt.Errorf("ent: validator failed for field \"intro\": %w", err)}
+		}
+	}
+	if v, ok := uu.mutation.GithubProfile(); ok {
+		if err := user.GithubProfileValidator(v); err != nil {
+			return &ValidationError{Name: "github_profile", err: fmt.Errorf("ent: validator failed for field \"github_profile\": %w", err)}
+		}
+	}
+	if v, ok := uu.mutation.ProfilePictureURL(); ok {
+		if err := user.ProfilePictureURLValidator(v); err != nil {
+			return &ValidationError{Name: "profile_picture_url", err: fmt.Errorf("ent: validator failed for field \"profile_picture_url\": %w", err)}
 		}
 	}
 	if v, ok := uu.mutation.Status(); ok {
@@ -301,6 +337,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: user.FieldFullname,
+		})
+	}
+	if value, ok := uu.mutation.Password(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldPassword,
 		})
 	}
 	if value, ok := uu.mutation.Email(); ok {
@@ -502,6 +545,12 @@ func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
 // SetFullname sets the "fullname" field.
 func (uuo *UserUpdateOne) SetFullname(s string) *UserUpdateOne {
 	uuo.mutation.SetFullname(s)
+	return uuo
+}
+
+// SetPassword sets the "password" field.
+func (uuo *UserUpdateOne) SetPassword(s string) *UserUpdateOne {
+	uuo.mutation.SetPassword(s)
 	return uuo
 }
 
@@ -708,9 +757,39 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "fullname", err: fmt.Errorf("ent: validator failed for field \"fullname\": %w", err)}
 		}
 	}
+	if v, ok := uuo.mutation.Password(); ok {
+		if err := user.PasswordValidator(v); err != nil {
+			return &ValidationError{Name: "password", err: fmt.Errorf("ent: validator failed for field \"password\": %w", err)}
+		}
+	}
 	if v, ok := uuo.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
+		}
+	}
+	if v, ok := uuo.mutation.Phone(); ok {
+		if err := user.PhoneValidator(v); err != nil {
+			return &ValidationError{Name: "phone", err: fmt.Errorf("ent: validator failed for field \"phone\": %w", err)}
+		}
+	}
+	if v, ok := uuo.mutation.Bio(); ok {
+		if err := user.BioValidator(v); err != nil {
+			return &ValidationError{Name: "bio", err: fmt.Errorf("ent: validator failed for field \"bio\": %w", err)}
+		}
+	}
+	if v, ok := uuo.mutation.Intro(); ok {
+		if err := user.IntroValidator(v); err != nil {
+			return &ValidationError{Name: "intro", err: fmt.Errorf("ent: validator failed for field \"intro\": %w", err)}
+		}
+	}
+	if v, ok := uuo.mutation.GithubProfile(); ok {
+		if err := user.GithubProfileValidator(v); err != nil {
+			return &ValidationError{Name: "github_profile", err: fmt.Errorf("ent: validator failed for field \"github_profile\": %w", err)}
+		}
+	}
+	if v, ok := uuo.mutation.ProfilePictureURL(); ok {
+		if err := user.ProfilePictureURLValidator(v); err != nil {
+			return &ValidationError{Name: "profile_picture_url", err: fmt.Errorf("ent: validator failed for field \"profile_picture_url\": %w", err)}
 		}
 	}
 	if v, ok := uuo.mutation.Status(); ok {
@@ -775,6 +854,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeString,
 			Value:  value,
 			Column: user.FieldFullname,
+		})
+	}
+	if value, ok := uuo.mutation.Password(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldPassword,
 		})
 	}
 	if value, ok := uuo.mutation.Email(); ok {

@@ -6,8 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"refernet/ent/company"
-	"refernet/ent/workexperience"
+	"refernet/internal/ent/company"
+	"refernet/internal/ent/workexperience"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -67,15 +67,15 @@ func (cc *CompanyCreate) SetWebsite(s string) *CompanyCreate {
 	return cc
 }
 
-// SetIndustry sets the "industry" field.
-func (cc *CompanyCreate) SetIndustry(s []string) *CompanyCreate {
-	cc.mutation.SetIndustry(s)
+// SetIndustries sets the "industries" field.
+func (cc *CompanyCreate) SetIndustries(s []string) *CompanyCreate {
+	cc.mutation.SetIndustries(s)
 	return cc
 }
 
-// SetLocation sets the "location" field.
-func (cc *CompanyCreate) SetLocation(s []string) *CompanyCreate {
-	cc.mutation.SetLocation(s)
+// SetLocations sets the "locations" field.
+func (cc *CompanyCreate) SetLocations(s []string) *CompanyCreate {
+	cc.mutation.SetLocations(s)
 	return cc
 }
 
@@ -205,17 +205,32 @@ func (cc *CompanyCreate) check() error {
 	if _, ok := cc.mutation.Overview(); !ok {
 		return &ValidationError{Name: "overview", err: errors.New("ent: missing required field \"overview\"")}
 	}
+	if v, ok := cc.mutation.Overview(); ok {
+		if err := company.OverviewValidator(v); err != nil {
+			return &ValidationError{Name: "overview", err: fmt.Errorf("ent: validator failed for field \"overview\": %w", err)}
+		}
+	}
 	if _, ok := cc.mutation.Website(); !ok {
 		return &ValidationError{Name: "website", err: errors.New("ent: missing required field \"website\"")}
 	}
-	if _, ok := cc.mutation.Industry(); !ok {
-		return &ValidationError{Name: "industry", err: errors.New("ent: missing required field \"industry\"")}
+	if v, ok := cc.mutation.Website(); ok {
+		if err := company.WebsiteValidator(v); err != nil {
+			return &ValidationError{Name: "website", err: fmt.Errorf("ent: validator failed for field \"website\": %w", err)}
+		}
 	}
-	if _, ok := cc.mutation.Location(); !ok {
-		return &ValidationError{Name: "location", err: errors.New("ent: missing required field \"location\"")}
+	if _, ok := cc.mutation.Industries(); !ok {
+		return &ValidationError{Name: "industries", err: errors.New("ent: missing required field \"industries\"")}
+	}
+	if _, ok := cc.mutation.Locations(); !ok {
+		return &ValidationError{Name: "locations", err: errors.New("ent: missing required field \"locations\"")}
 	}
 	if _, ok := cc.mutation.LogoURL(); !ok {
 		return &ValidationError{Name: "logo_url", err: errors.New("ent: missing required field \"logo_url\"")}
+	}
+	if v, ok := cc.mutation.LogoURL(); ok {
+		if err := company.LogoURLValidator(v); err != nil {
+			return &ValidationError{Name: "logo_url", err: fmt.Errorf("ent: validator failed for field \"logo_url\": %w", err)}
+		}
 	}
 	if _, ok := cc.mutation.Size(); !ok {
 		return &ValidationError{Name: "size", err: errors.New("ent: missing required field \"size\"")}
@@ -300,21 +315,21 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 		})
 		_node.Website = value
 	}
-	if value, ok := cc.mutation.Industry(); ok {
+	if value, ok := cc.mutation.Industries(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: company.FieldIndustry,
+			Column: company.FieldIndustries,
 		})
-		_node.Industry = value
+		_node.Industries = value
 	}
-	if value, ok := cc.mutation.Location(); ok {
+	if value, ok := cc.mutation.Locations(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: company.FieldLocation,
+			Column: company.FieldLocations,
 		})
-		_node.Location = value
+		_node.Locations = value
 	}
 	if value, ok := cc.mutation.LogoURL(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
