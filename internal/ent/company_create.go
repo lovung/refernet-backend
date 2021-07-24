@@ -67,18 +67,6 @@ func (cc *CompanyCreate) SetWebsite(s string) *CompanyCreate {
 	return cc
 }
 
-// SetIndustries sets the "industries" field.
-func (cc *CompanyCreate) SetIndustries(s []string) *CompanyCreate {
-	cc.mutation.SetIndustries(s)
-	return cc
-}
-
-// SetLocations sets the "locations" field.
-func (cc *CompanyCreate) SetLocations(s []string) *CompanyCreate {
-	cc.mutation.SetLocations(s)
-	return cc
-}
-
 // SetLogoURL sets the "logo_url" field.
 func (cc *CompanyCreate) SetLogoURL(s string) *CompanyCreate {
 	cc.mutation.SetLogoURL(s)
@@ -147,11 +135,17 @@ func (cc *CompanyCreate) Save(ctx context.Context) (*Company, error) {
 				return nil, err
 			}
 			cc.mutation = mutation
-			node, err = cc.sqlSave(ctx)
+			if node, err = cc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
 		for i := len(cc.hooks) - 1; i >= 0; i-- {
+			if cc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = cc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, cc.mutation); err != nil {
@@ -168,6 +162,19 @@ func (cc *CompanyCreate) SaveX(ctx context.Context) *Company {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (cc *CompanyCreate) Exec(ctx context.Context) error {
+	_, err := cc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (cc *CompanyCreate) ExecX(ctx context.Context) {
+	if err := cc.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
 
 // defaults sets the default values of the builder before save.
@@ -189,63 +196,57 @@ func (cc *CompanyCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (cc *CompanyCreate) check() error {
 	if _, ok := cc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New("ent: missing required field \"created_at\"")}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
 	}
 	if _, ok := cc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New("ent: missing required field \"updated_at\"")}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
 	if _, ok := cc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "name"`)}
 	}
 	if v, ok := cc.mutation.Name(); ok {
 		if err := company.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "name": %w`, err)}
 		}
 	}
 	if _, ok := cc.mutation.Overview(); !ok {
-		return &ValidationError{Name: "overview", err: errors.New("ent: missing required field \"overview\"")}
+		return &ValidationError{Name: "overview", err: errors.New(`ent: missing required field "overview"`)}
 	}
 	if v, ok := cc.mutation.Overview(); ok {
 		if err := company.OverviewValidator(v); err != nil {
-			return &ValidationError{Name: "overview", err: fmt.Errorf("ent: validator failed for field \"overview\": %w", err)}
+			return &ValidationError{Name: "overview", err: fmt.Errorf(`ent: validator failed for field "overview": %w`, err)}
 		}
 	}
 	if _, ok := cc.mutation.Website(); !ok {
-		return &ValidationError{Name: "website", err: errors.New("ent: missing required field \"website\"")}
+		return &ValidationError{Name: "website", err: errors.New(`ent: missing required field "website"`)}
 	}
 	if v, ok := cc.mutation.Website(); ok {
 		if err := company.WebsiteValidator(v); err != nil {
-			return &ValidationError{Name: "website", err: fmt.Errorf("ent: validator failed for field \"website\": %w", err)}
+			return &ValidationError{Name: "website", err: fmt.Errorf(`ent: validator failed for field "website": %w`, err)}
 		}
 	}
-	if _, ok := cc.mutation.Industries(); !ok {
-		return &ValidationError{Name: "industries", err: errors.New("ent: missing required field \"industries\"")}
-	}
-	if _, ok := cc.mutation.Locations(); !ok {
-		return &ValidationError{Name: "locations", err: errors.New("ent: missing required field \"locations\"")}
-	}
 	if _, ok := cc.mutation.LogoURL(); !ok {
-		return &ValidationError{Name: "logo_url", err: errors.New("ent: missing required field \"logo_url\"")}
+		return &ValidationError{Name: "logo_url", err: errors.New(`ent: missing required field "logo_url"`)}
 	}
 	if v, ok := cc.mutation.LogoURL(); ok {
 		if err := company.LogoURLValidator(v); err != nil {
-			return &ValidationError{Name: "logo_url", err: fmt.Errorf("ent: validator failed for field \"logo_url\": %w", err)}
+			return &ValidationError{Name: "logo_url", err: fmt.Errorf(`ent: validator failed for field "logo_url": %w`, err)}
 		}
 	}
 	if _, ok := cc.mutation.Size(); !ok {
-		return &ValidationError{Name: "size", err: errors.New("ent: missing required field \"size\"")}
+		return &ValidationError{Name: "size", err: errors.New(`ent: missing required field "size"`)}
 	}
 	if v, ok := cc.mutation.Size(); ok {
 		if err := company.SizeValidator(v); err != nil {
-			return &ValidationError{Name: "size", err: fmt.Errorf("ent: validator failed for field \"size\": %w", err)}
+			return &ValidationError{Name: "size", err: fmt.Errorf(`ent: validator failed for field "size": %w`, err)}
 		}
 	}
 	if _, ok := cc.mutation.FoundedAt(); !ok {
-		return &ValidationError{Name: "founded_at", err: errors.New("ent: missing required field \"founded_at\"")}
+		return &ValidationError{Name: "founded_at", err: errors.New(`ent: missing required field "founded_at"`)}
 	}
 	if v, ok := cc.mutation.FoundedAt(); ok {
 		if err := company.FoundedAtValidator(v); err != nil {
-			return &ValidationError{Name: "founded_at", err: fmt.Errorf("ent: validator failed for field \"founded_at\": %w", err)}
+			return &ValidationError{Name: "founded_at", err: fmt.Errorf(`ent: validator failed for field "founded_at": %w`, err)}
 		}
 	}
 	return nil
@@ -254,8 +255,8 @@ func (cc *CompanyCreate) check() error {
 func (cc *CompanyCreate) sqlSave(ctx context.Context) (*Company, error) {
 	_node, _spec := cc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, cc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -314,22 +315,6 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 			Column: company.FieldWebsite,
 		})
 		_node.Website = value
-	}
-	if value, ok := cc.mutation.Industries(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: company.FieldIndustries,
-		})
-		_node.Industries = value
-	}
-	if value, ok := cc.mutation.Locations(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: company.FieldLocations,
-		})
-		_node.Locations = value
 	}
 	if value, ok := cc.mutation.LogoURL(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -408,15 +393,16 @@ func (ccb *CompanyCreateBulk) Save(ctx context.Context) ([]*Company, error) {
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, ccb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

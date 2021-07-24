@@ -22,10 +22,6 @@ const (
 	FieldOverview = "overview"
 	// FieldWebsite holds the string denoting the website field in the database.
 	FieldWebsite = "website"
-	// FieldIndustries holds the string denoting the industries field in the database.
-	FieldIndustries = "industries"
-	// FieldLocations holds the string denoting the locations field in the database.
-	FieldLocations = "locations"
 	// FieldLogoURL holds the string denoting the logo_url field in the database.
 	FieldLogoURL = "logo_url"
 	// FieldSize holds the string denoting the size field in the database.
@@ -36,7 +32,7 @@ const (
 	EdgeStaffs = "staffs"
 	// Table holds the table name of the company in the database.
 	Table = "companies"
-	// StaffsTable is the table the holds the staffs relation/edge.
+	// StaffsTable is the table that holds the staffs relation/edge.
 	StaffsTable = "work_experiences"
 	// StaffsInverseTable is the table name for the WorkExperience entity.
 	// It exists in this package in order to avoid circular dependency with the "workexperience" package.
@@ -53,8 +49,6 @@ var Columns = []string{
 	FieldName,
 	FieldOverview,
 	FieldWebsite,
-	FieldIndustries,
-	FieldLocations,
 	FieldLogoURL,
 	FieldSize,
 	FieldFoundedAt,
@@ -90,8 +84,8 @@ var (
 // Size defines the type for the "size" enum field.
 type Size string
 
-// SizeMedium is the default value of the Size enum.
-const DefaultSize = SizeMedium
+// SizeStartup is the default value of the Size enum.
+const DefaultSize = SizeStartup
 
 // Size values.
 const (

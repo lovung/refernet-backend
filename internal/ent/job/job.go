@@ -18,8 +18,6 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
-	// FieldLocations holds the string denoting the locations field in the database.
-	FieldLocations = "locations"
 	// FieldMinSalary holds the string denoting the min_salary field in the database.
 	FieldMinSalary = "min_salary"
 	// FieldMaxSalary holds the string denoting the max_salary field in the database.
@@ -40,14 +38,14 @@ const (
 	EdgeSkills = "skills"
 	// Table holds the table name of the job in the database.
 	Table = "jobs"
-	// OwnerTable is the table the holds the owner relation/edge.
+	// OwnerTable is the table that holds the owner relation/edge.
 	OwnerTable = "jobs"
 	// OwnerInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	OwnerInverseTable = "users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "user_jobs"
-	// SkillsTable is the table the holds the skills relation/edge. The primary key declared below.
+	// SkillsTable is the table that holds the skills relation/edge. The primary key declared below.
 	SkillsTable = "skill_jobs"
 	// SkillsInverseTable is the table name for the Skill entity.
 	// It exists in this package in order to avoid circular dependency with the "skill" package.
@@ -60,7 +58,6 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldTitle,
-	FieldLocations,
 	FieldMinSalary,
 	FieldMaxSalary,
 	FieldSalaryUnit,

@@ -23,9 +23,9 @@ type JobUpdate struct {
 	mutation *JobMutation
 }
 
-// Where adds a new predicate for the JobUpdate builder.
+// Where appends a list predicates to the JobUpdate builder.
 func (ju *JobUpdate) Where(ps ...predicate.Job) *JobUpdate {
-	ju.mutation.predicates = append(ju.mutation.predicates, ps...)
+	ju.mutation.Where(ps...)
 	return ju
 }
 
@@ -46,12 +46,6 @@ func (ju *JobUpdate) SetNillableUpdatedAt(t *time.Time) *JobUpdate {
 // SetTitle sets the "title" field.
 func (ju *JobUpdate) SetTitle(s string) *JobUpdate {
 	ju.mutation.SetTitle(s)
-	return ju
-}
-
-// SetLocations sets the "locations" field.
-func (ju *JobUpdate) SetLocations(s []string) *JobUpdate {
-	ju.mutation.SetLocations(s)
 	return ju
 }
 
@@ -219,6 +213,9 @@ func (ju *JobUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(ju.hooks) - 1; i >= 0; i-- {
+			if ju.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ju.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ju.mutation); err != nil {
@@ -325,13 +322,6 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: job.FieldTitle,
-		})
-	}
-	if value, ok := ju.mutation.Locations(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: job.FieldLocations,
 		})
 	}
 	if value, ok := ju.mutation.MinSalary(); ok {
@@ -489,8 +479,8 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if n, err = sqlgraph.UpdateNodes(ctx, ju.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{job.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -522,12 +512,6 @@ func (juo *JobUpdateOne) SetNillableUpdatedAt(t *time.Time) *JobUpdateOne {
 // SetTitle sets the "title" field.
 func (juo *JobUpdateOne) SetTitle(s string) *JobUpdateOne {
 	juo.mutation.SetTitle(s)
-	return juo
-}
-
-// SetLocations sets the "locations" field.
-func (juo *JobUpdateOne) SetLocations(s []string) *JobUpdateOne {
-	juo.mutation.SetLocations(s)
 	return juo
 }
 
@@ -702,6 +686,9 @@ func (juo *JobUpdateOne) Save(ctx context.Context) (*Job, error) {
 			return node, err
 		})
 		for i := len(juo.hooks) - 1; i >= 0; i-- {
+			if juo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = juo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, juo.mutation); err != nil {
@@ -825,13 +812,6 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: job.FieldTitle,
-		})
-	}
-	if value, ok := juo.mutation.Locations(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: job.FieldLocations,
 		})
 	}
 	if value, ok := juo.mutation.MinSalary(); ok {
@@ -992,8 +972,8 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 	if err = sqlgraph.UpdateNode(ctx, juo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{job.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

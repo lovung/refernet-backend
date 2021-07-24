@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"refernet/ent"
+	"refernet/internal/ent"
 
 	"entgo.io/ent/dialect"
 	_ "github.com/mattn/go-sqlite3"

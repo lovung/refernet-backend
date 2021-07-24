@@ -39,11 +39,11 @@ func init() {
 	// company.WebsiteValidator is a validator for the "website" field. It is called by the builders before save.
 	company.WebsiteValidator = companyDescWebsite.Validators[0].(func(string) error)
 	// companyDescLogoURL is the schema descriptor for logo_url field.
-	companyDescLogoURL := companyFields[7].Descriptor()
+	companyDescLogoURL := companyFields[5].Descriptor()
 	// company.LogoURLValidator is a validator for the "logo_url" field. It is called by the builders before save.
 	company.LogoURLValidator = companyDescLogoURL.Validators[0].(func(string) error)
 	// companyDescFoundedAt is the schema descriptor for founded_at field.
-	companyDescFoundedAt := companyFields[9].Descriptor()
+	companyDescFoundedAt := companyFields[7].Descriptor()
 	// company.FoundedAtValidator is a validator for the "founded_at" field. It is called by the builders before save.
 	company.FoundedAtValidator = companyDescFoundedAt.Validators[0].(func(int) error)
 	jobFields := schema.Job{}.Fields()
@@ -75,23 +75,23 @@ func init() {
 		}
 	}()
 	// jobDescMinSalary is the schema descriptor for min_salary field.
-	jobDescMinSalary := jobFields[4].Descriptor()
+	jobDescMinSalary := jobFields[3].Descriptor()
 	// job.MinSalaryValidator is a validator for the "min_salary" field. It is called by the builders before save.
 	job.MinSalaryValidator = jobDescMinSalary.Validators[0].(func(uint64) error)
 	// jobDescMaxSalary is the schema descriptor for max_salary field.
-	jobDescMaxSalary := jobFields[5].Descriptor()
+	jobDescMaxSalary := jobFields[4].Descriptor()
 	// job.MaxSalaryValidator is a validator for the "max_salary" field. It is called by the builders before save.
 	job.MaxSalaryValidator = jobDescMaxSalary.Validators[0].(func(uint64) error)
 	// jobDescRequirements is the schema descriptor for requirements field.
-	jobDescRequirements := jobFields[8].Descriptor()
+	jobDescRequirements := jobFields[7].Descriptor()
 	// job.RequirementsValidator is a validator for the "requirements" field. It is called by the builders before save.
 	job.RequirementsValidator = jobDescRequirements.Validators[0].(func(string) error)
 	// jobDescResponsibilities is the schema descriptor for responsibilities field.
-	jobDescResponsibilities := jobFields[9].Descriptor()
+	jobDescResponsibilities := jobFields[8].Descriptor()
 	// job.ResponsibilitiesValidator is a validator for the "responsibilities" field. It is called by the builders before save.
 	job.ResponsibilitiesValidator = jobDescResponsibilities.Validators[0].(func(string) error)
 	// jobDescBenefits is the schema descriptor for benefits field.
-	jobDescBenefits := jobFields[10].Descriptor()
+	jobDescBenefits := jobFields[9].Descriptor()
 	// job.BenefitsValidator is a validator for the "benefits" field. It is called by the builders before save.
 	job.BenefitsValidator = jobDescBenefits.Validators[0].(func(string) error)
 	skillFields := schema.Skill{}.Fields()

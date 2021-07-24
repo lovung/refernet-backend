@@ -42,14 +42,14 @@ const (
 	EdgeExperiences = "experiences"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// JobsTable is the table the holds the jobs relation/edge.
+	// JobsTable is the table that holds the jobs relation/edge.
 	JobsTable = "jobs"
 	// JobsInverseTable is the table name for the Job entity.
 	// It exists in this package in order to avoid circular dependency with the "job" package.
 	JobsInverseTable = "jobs"
 	// JobsColumn is the table column denoting the jobs relation/edge.
 	JobsColumn = "user_jobs"
-	// ExperiencesTable is the table the holds the experiences relation/edge.
+	// ExperiencesTable is the table that holds the experiences relation/edge.
 	ExperiencesTable = "work_experiences"
 	// ExperiencesInverseTable is the table name for the WorkExperience entity.
 	// It exists in this package in order to avoid circular dependency with the "workexperience" package.
@@ -119,7 +119,7 @@ const DefaultStatus = StatusNew
 // Status values.
 const (
 	StatusNew      Status = "new"
-	StatusVerified Status = "verified"
+	StatusActive   Status = "active"
 	StatusInactive Status = "inactive"
 )
 
@@ -130,7 +130,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusNew, StatusVerified, StatusInactive:
+	case StatusNew, StatusActive, StatusInactive:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)

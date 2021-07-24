@@ -16,18 +16,15 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "overview", Type: field.TypeString, Size: 1024},
 		{Name: "website", Type: field.TypeString, Size: 128},
-		{Name: "industries", Type: field.TypeJSON},
-		{Name: "locations", Type: field.TypeJSON},
 		{Name: "logo_url", Type: field.TypeString, Size: 128},
-		{Name: "size", Type: field.TypeEnum, Enums: []string{"startup", "small", "medium", "big", "huge"}, Default: "medium"},
+		{Name: "size", Type: field.TypeEnum, Enums: []string{"startup", "small", "medium", "big", "huge"}, Default: "startup"},
 		{Name: "founded_at", Type: field.TypeInt},
 	}
 	// CompaniesTable holds the schema information for the "companies" table.
 	CompaniesTable = &schema.Table{
-		Name:        "companies",
-		Columns:     CompaniesColumns,
-		PrimaryKey:  []*schema.Column{CompaniesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "companies",
+		Columns:    CompaniesColumns,
+		PrimaryKey: []*schema.Column{CompaniesColumns[0]},
 	}
 	// JobsColumns holds the columns for the "jobs" table.
 	JobsColumns = []*schema.Column{
@@ -35,7 +32,6 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "title", Type: field.TypeString, Size: 128},
-		{Name: "locations", Type: field.TypeJSON},
 		{Name: "min_salary", Type: field.TypeUint64},
 		{Name: "max_salary", Type: field.TypeUint64},
 		{Name: "salary_unit", Type: field.TypeEnum, Enums: []string{"VND", "USD"}, Default: "VND"},
@@ -53,7 +49,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "jobs_users_jobs",
-				Columns:    []*schema.Column{JobsColumns[12]},
+				Columns:    []*schema.Column{JobsColumns[11]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -69,10 +65,9 @@ var (
 	}
 	// SkillsTable holds the schema information for the "skills" table.
 	SkillsTable = &schema.Table{
-		Name:        "skills",
-		Columns:     SkillsColumns,
-		PrimaryKey:  []*schema.Column{SkillsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "skills",
+		Columns:    SkillsColumns,
+		PrimaryKey: []*schema.Column{SkillsColumns[0]},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -88,14 +83,13 @@ var (
 		{Name: "intro", Type: field.TypeString, Size: 1024},
 		{Name: "github_profile", Type: field.TypeString, Size: 128},
 		{Name: "profile_picture_url", Type: field.TypeString, Size: 128},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"new", "verified", "inactive"}, Default: "new"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"new", "active", "inactive"}, Default: "new"},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
-		Name:        "users",
-		Columns:     UsersColumns,
-		PrimaryKey:  []*schema.Column{UsersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
 	// WorkExperiencesColumns holds the columns for the "work_experiences" table.
 	WorkExperiencesColumns = []*schema.Column{

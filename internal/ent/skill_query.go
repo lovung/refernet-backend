@@ -361,8 +361,8 @@ func (sq *SkillQuery) GroupBy(field string, fields ...string) *SkillGroupBy {
 //		Select(skill.FieldCreatedAt).
 //		Scan(ctx, &v)
 //
-func (sq *SkillQuery) Select(field string, fields ...string) *SkillSelect {
-	sq.fields = append([]string{field}, fields...)
+func (sq *SkillQuery) Select(fields ...string) *SkillSelect {
+	sq.fields = append(sq.fields, fields...)
 	return &SkillSelect{SkillQuery: sq}
 }
 
@@ -433,7 +433,7 @@ func (sq *SkillQuery) sqlAll(ctx context.Context) ([]*Skill, error) {
 				s.Where(sql.InValues(skill.ExperiencesPrimaryKey[0], fks...))
 			},
 			ScanValues: func() [2]interface{} {
-				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+				return [2]interface{}{new(sql.NullInt64), new(sql.NullInt64)}
 			},
 			Assign: func(out, in interface{}) error {
 				eout, ok := out.(*sql.NullInt64)
@@ -498,7 +498,7 @@ func (sq *SkillQuery) sqlAll(ctx context.Context) ([]*Skill, error) {
 				s.Where(sql.InValues(skill.JobsPrimaryKey[0], fks...))
 			},
 			ScanValues: func() [2]interface{} {
-				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+				return [2]interface{}{new(sql.NullInt64), new(sql.NullInt64)}
 			},
 			Assign: func(out, in interface{}) error {
 				eout, ok := out.(*sql.NullInt64)
@@ -608,10 +608,14 @@ func (sq *SkillQuery) querySpec() *sqlgraph.QuerySpec {
 func (sq *SkillQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(sq.driver.Dialect())
 	t1 := builder.Table(skill.Table)
-	selector := builder.Select(t1.Columns(skill.Columns...)...).From(t1)
+	columns := sq.fields
+	if len(columns) == 0 {
+		columns = skill.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if sq.sql != nil {
 		selector = sq.sql
-		selector.Select(selector.Columns(skill.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range sq.predicates {
 		p(selector)
@@ -879,13 +883,24 @@ func (sgb *SkillGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (sgb *SkillGroupBy) sqlQuery() *sql.Selector {
-	selector := sgb.sql
-	columns := make([]string, 0, len(sgb.fields)+len(sgb.fns))
-	columns = append(columns, sgb.fields...)
+	selector := sgb.sql.Select()
+	aggregation := make([]string, 0, len(sgb.fns))
 	for _, fn := range sgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(sgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(sgb.fields)+len(sgb.fns))
+		for _, f := range sgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(sgb.fields...)...)
 }
 
 // SkillSelect is the builder for selecting fields of Skill entities.
@@ -1101,16 +1116,10 @@ func (ss *SkillSelect) BoolX(ctx context.Context) bool {
 
 func (ss *SkillSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := ss.sqlQuery().Query()
+	query, args := ss.sql.Query()
 	if err := ss.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (ss *SkillSelect) sqlQuery() sql.Querier {
-	selector := ss.sql
-	selector.Select(selector.Columns(ss.fields...)...)
-	return selector
 }

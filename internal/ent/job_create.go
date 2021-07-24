@@ -56,12 +56,6 @@ func (jc *JobCreate) SetTitle(s string) *JobCreate {
 	return jc
 }
 
-// SetLocations sets the "locations" field.
-func (jc *JobCreate) SetLocations(s []string) *JobCreate {
-	jc.mutation.SetLocations(s)
-	return jc
-}
-
 // SetMinSalary sets the "min_salary" field.
 func (jc *JobCreate) SetMinSalary(u uint64) *JobCreate {
 	jc.mutation.SetMinSalary(u)
@@ -181,11 +175,17 @@ func (jc *JobCreate) Save(ctx context.Context) (*Job, error) {
 				return nil, err
 			}
 			jc.mutation = mutation
-			node, err = jc.sqlSave(ctx)
+			if node, err = jc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
 		for i := len(jc.hooks) - 1; i >= 0; i-- {
+			if jc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = jc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, jc.mutation); err != nil {
@@ -202,6 +202,19 @@ func (jc *JobCreate) SaveX(ctx context.Context) *Job {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (jc *JobCreate) Exec(ctx context.Context) error {
+	_, err := jc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (jc *JobCreate) ExecX(ctx context.Context) {
+	if err := jc.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
 
 // defaults sets the default values of the builder before save.
@@ -227,76 +240,73 @@ func (jc *JobCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (jc *JobCreate) check() error {
 	if _, ok := jc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New("ent: missing required field \"created_at\"")}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
 	}
 	if _, ok := jc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New("ent: missing required field \"updated_at\"")}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
 	if _, ok := jc.mutation.Title(); !ok {
-		return &ValidationError{Name: "title", err: errors.New("ent: missing required field \"title\"")}
+		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "title"`)}
 	}
 	if v, ok := jc.mutation.Title(); ok {
 		if err := job.TitleValidator(v); err != nil {
-			return &ValidationError{Name: "title", err: fmt.Errorf("ent: validator failed for field \"title\": %w", err)}
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "title": %w`, err)}
 		}
 	}
-	if _, ok := jc.mutation.Locations(); !ok {
-		return &ValidationError{Name: "locations", err: errors.New("ent: missing required field \"locations\"")}
-	}
 	if _, ok := jc.mutation.MinSalary(); !ok {
-		return &ValidationError{Name: "min_salary", err: errors.New("ent: missing required field \"min_salary\"")}
+		return &ValidationError{Name: "min_salary", err: errors.New(`ent: missing required field "min_salary"`)}
 	}
 	if v, ok := jc.mutation.MinSalary(); ok {
 		if err := job.MinSalaryValidator(v); err != nil {
-			return &ValidationError{Name: "min_salary", err: fmt.Errorf("ent: validator failed for field \"min_salary\": %w", err)}
+			return &ValidationError{Name: "min_salary", err: fmt.Errorf(`ent: validator failed for field "min_salary": %w`, err)}
 		}
 	}
 	if _, ok := jc.mutation.MaxSalary(); !ok {
-		return &ValidationError{Name: "max_salary", err: errors.New("ent: missing required field \"max_salary\"")}
+		return &ValidationError{Name: "max_salary", err: errors.New(`ent: missing required field "max_salary"`)}
 	}
 	if v, ok := jc.mutation.MaxSalary(); ok {
 		if err := job.MaxSalaryValidator(v); err != nil {
-			return &ValidationError{Name: "max_salary", err: fmt.Errorf("ent: validator failed for field \"max_salary\": %w", err)}
+			return &ValidationError{Name: "max_salary", err: fmt.Errorf(`ent: validator failed for field "max_salary": %w`, err)}
 		}
 	}
 	if _, ok := jc.mutation.SalaryUnit(); !ok {
-		return &ValidationError{Name: "salary_unit", err: errors.New("ent: missing required field \"salary_unit\"")}
+		return &ValidationError{Name: "salary_unit", err: errors.New(`ent: missing required field "salary_unit"`)}
 	}
 	if v, ok := jc.mutation.SalaryUnit(); ok {
 		if err := job.SalaryUnitValidator(v); err != nil {
-			return &ValidationError{Name: "salary_unit", err: fmt.Errorf("ent: validator failed for field \"salary_unit\": %w", err)}
+			return &ValidationError{Name: "salary_unit", err: fmt.Errorf(`ent: validator failed for field "salary_unit": %w`, err)}
 		}
 	}
 	if _, ok := jc.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New("ent: missing required field \"type\"")}
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "type"`)}
 	}
 	if v, ok := jc.mutation.GetType(); ok {
 		if err := job.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "type": %w`, err)}
 		}
 	}
 	if _, ok := jc.mutation.Requirements(); !ok {
-		return &ValidationError{Name: "requirements", err: errors.New("ent: missing required field \"requirements\"")}
+		return &ValidationError{Name: "requirements", err: errors.New(`ent: missing required field "requirements"`)}
 	}
 	if v, ok := jc.mutation.Requirements(); ok {
 		if err := job.RequirementsValidator(v); err != nil {
-			return &ValidationError{Name: "requirements", err: fmt.Errorf("ent: validator failed for field \"requirements\": %w", err)}
+			return &ValidationError{Name: "requirements", err: fmt.Errorf(`ent: validator failed for field "requirements": %w`, err)}
 		}
 	}
 	if _, ok := jc.mutation.Responsibilities(); !ok {
-		return &ValidationError{Name: "responsibilities", err: errors.New("ent: missing required field \"responsibilities\"")}
+		return &ValidationError{Name: "responsibilities", err: errors.New(`ent: missing required field "responsibilities"`)}
 	}
 	if v, ok := jc.mutation.Responsibilities(); ok {
 		if err := job.ResponsibilitiesValidator(v); err != nil {
-			return &ValidationError{Name: "responsibilities", err: fmt.Errorf("ent: validator failed for field \"responsibilities\": %w", err)}
+			return &ValidationError{Name: "responsibilities", err: fmt.Errorf(`ent: validator failed for field "responsibilities": %w`, err)}
 		}
 	}
 	if _, ok := jc.mutation.Benefits(); !ok {
-		return &ValidationError{Name: "benefits", err: errors.New("ent: missing required field \"benefits\"")}
+		return &ValidationError{Name: "benefits", err: errors.New(`ent: missing required field "benefits"`)}
 	}
 	if v, ok := jc.mutation.Benefits(); ok {
 		if err := job.BenefitsValidator(v); err != nil {
-			return &ValidationError{Name: "benefits", err: fmt.Errorf("ent: validator failed for field \"benefits\": %w", err)}
+			return &ValidationError{Name: "benefits", err: fmt.Errorf(`ent: validator failed for field "benefits": %w`, err)}
 		}
 	}
 	return nil
@@ -305,8 +315,8 @@ func (jc *JobCreate) check() error {
 func (jc *JobCreate) sqlSave(ctx context.Context) (*Job, error) {
 	_node, _spec := jc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, jc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -349,14 +359,6 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 			Column: job.FieldTitle,
 		})
 		_node.Title = value
-	}
-	if value, ok := jc.mutation.Locations(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: job.FieldLocations,
-		})
-		_node.Locations = value
 	}
 	if value, ok := jc.mutation.MinSalary(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -487,15 +489,16 @@ func (jcb *JobCreateBulk) Save(ctx context.Context) ([]*Job, error) {
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, jcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

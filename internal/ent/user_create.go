@@ -175,11 +175,17 @@ func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 				return nil, err
 			}
 			uc.mutation = mutation
-			node, err = uc.sqlSave(ctx)
+			if node, err = uc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
 		for i := len(uc.hooks) - 1; i >= 0; i-- {
+			if uc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = uc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, uc.mutation); err != nil {
@@ -196,6 +202,19 @@ func (uc *UserCreate) SaveX(ctx context.Context) *User {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (uc *UserCreate) Exec(ctx context.Context) error {
+	_, err := uc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (uc *UserCreate) ExecX(ctx context.Context) {
+	if err := uc.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
 
 // defaults sets the default values of the builder before save.
@@ -217,89 +236,89 @@ func (uc *UserCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New("ent: missing required field \"created_at\"")}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
 	}
 	if _, ok := uc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New("ent: missing required field \"updated_at\"")}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
 	if _, ok := uc.mutation.Username(); !ok {
-		return &ValidationError{Name: "username", err: errors.New("ent: missing required field \"username\"")}
+		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "username"`)}
 	}
 	if v, ok := uc.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {
-			return &ValidationError{Name: "username", err: fmt.Errorf("ent: validator failed for field \"username\": %w", err)}
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "username": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Fullname(); !ok {
-		return &ValidationError{Name: "fullname", err: errors.New("ent: missing required field \"fullname\"")}
+		return &ValidationError{Name: "fullname", err: errors.New(`ent: missing required field "fullname"`)}
 	}
 	if v, ok := uc.mutation.Fullname(); ok {
 		if err := user.FullnameValidator(v); err != nil {
-			return &ValidationError{Name: "fullname", err: fmt.Errorf("ent: validator failed for field \"fullname\": %w", err)}
+			return &ValidationError{Name: "fullname", err: fmt.Errorf(`ent: validator failed for field "fullname": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New("ent: missing required field \"password\"")}
+		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "password"`)}
 	}
 	if v, ok := uc.mutation.Password(); ok {
 		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf("ent: validator failed for field \"password\": %w", err)}
+			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "password": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New("ent: missing required field \"email\"")}
+		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "email"`)}
 	}
 	if v, ok := uc.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "email": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Phone(); !ok {
-		return &ValidationError{Name: "phone", err: errors.New("ent: missing required field \"phone\"")}
+		return &ValidationError{Name: "phone", err: errors.New(`ent: missing required field "phone"`)}
 	}
 	if v, ok := uc.mutation.Phone(); ok {
 		if err := user.PhoneValidator(v); err != nil {
-			return &ValidationError{Name: "phone", err: fmt.Errorf("ent: validator failed for field \"phone\": %w", err)}
+			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "phone": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Bio(); !ok {
-		return &ValidationError{Name: "bio", err: errors.New("ent: missing required field \"bio\"")}
+		return &ValidationError{Name: "bio", err: errors.New(`ent: missing required field "bio"`)}
 	}
 	if v, ok := uc.mutation.Bio(); ok {
 		if err := user.BioValidator(v); err != nil {
-			return &ValidationError{Name: "bio", err: fmt.Errorf("ent: validator failed for field \"bio\": %w", err)}
+			return &ValidationError{Name: "bio", err: fmt.Errorf(`ent: validator failed for field "bio": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Intro(); !ok {
-		return &ValidationError{Name: "intro", err: errors.New("ent: missing required field \"intro\"")}
+		return &ValidationError{Name: "intro", err: errors.New(`ent: missing required field "intro"`)}
 	}
 	if v, ok := uc.mutation.Intro(); ok {
 		if err := user.IntroValidator(v); err != nil {
-			return &ValidationError{Name: "intro", err: fmt.Errorf("ent: validator failed for field \"intro\": %w", err)}
+			return &ValidationError{Name: "intro", err: fmt.Errorf(`ent: validator failed for field "intro": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.GithubProfile(); !ok {
-		return &ValidationError{Name: "github_profile", err: errors.New("ent: missing required field \"github_profile\"")}
+		return &ValidationError{Name: "github_profile", err: errors.New(`ent: missing required field "github_profile"`)}
 	}
 	if v, ok := uc.mutation.GithubProfile(); ok {
 		if err := user.GithubProfileValidator(v); err != nil {
-			return &ValidationError{Name: "github_profile", err: fmt.Errorf("ent: validator failed for field \"github_profile\": %w", err)}
+			return &ValidationError{Name: "github_profile", err: fmt.Errorf(`ent: validator failed for field "github_profile": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.ProfilePictureURL(); !ok {
-		return &ValidationError{Name: "profile_picture_url", err: errors.New("ent: missing required field \"profile_picture_url\"")}
+		return &ValidationError{Name: "profile_picture_url", err: errors.New(`ent: missing required field "profile_picture_url"`)}
 	}
 	if v, ok := uc.mutation.ProfilePictureURL(); ok {
 		if err := user.ProfilePictureURLValidator(v); err != nil {
-			return &ValidationError{Name: "profile_picture_url", err: fmt.Errorf("ent: validator failed for field \"profile_picture_url\": %w", err)}
+			return &ValidationError{Name: "profile_picture_url", err: fmt.Errorf(`ent: validator failed for field "profile_picture_url": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "status"`)}
 	}
 	if v, ok := uc.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "status": %w`, err)}
 		}
 	}
 	return nil
@@ -308,8 +327,8 @@ func (uc *UserCreate) check() error {
 func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 	_node, _spec := uc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, uc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -497,15 +516,16 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, ucb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

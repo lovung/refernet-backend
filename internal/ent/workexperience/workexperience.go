@@ -33,21 +33,21 @@ const (
 	EdgeSkills = "skills"
 	// Table holds the table name of the workexperience in the database.
 	Table = "work_experiences"
-	// OwnerTable is the table the holds the owner relation/edge.
+	// OwnerTable is the table that holds the owner relation/edge.
 	OwnerTable = "work_experiences"
 	// OwnerInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	OwnerInverseTable = "users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "user_experiences"
-	// InCompanyTable is the table the holds the in_company relation/edge.
+	// InCompanyTable is the table that holds the in_company relation/edge.
 	InCompanyTable = "work_experiences"
 	// InCompanyInverseTable is the table name for the Company entity.
 	// It exists in this package in order to avoid circular dependency with the "company" package.
 	InCompanyInverseTable = "companies"
 	// InCompanyColumn is the table column denoting the in_company relation/edge.
 	InCompanyColumn = "company_staffs"
-	// SkillsTable is the table the holds the skills relation/edge. The primary key declared below.
+	// SkillsTable is the table that holds the skills relation/edge. The primary key declared below.
 	SkillsTable = "skill_experiences"
 	// SkillsInverseTable is the table name for the Skill entity.
 	// It exists in this package in order to avoid circular dependency with the "skill" package.

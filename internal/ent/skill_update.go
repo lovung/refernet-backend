@@ -23,9 +23,9 @@ type SkillUpdate struct {
 	mutation *SkillMutation
 }
 
-// Where adds a new predicate for the SkillUpdate builder.
+// Where appends a list predicates to the SkillUpdate builder.
 func (su *SkillUpdate) Where(ps ...predicate.Skill) *SkillUpdate {
-	su.mutation.predicates = append(su.mutation.predicates, ps...)
+	su.mutation.Where(ps...)
 	return su
 }
 
@@ -166,6 +166,9 @@ func (su *SkillUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(su.hooks) - 1; i >= 0; i-- {
+			if su.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = su.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, su.mutation); err != nil {
@@ -357,8 +360,8 @@ func (su *SkillUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{skill.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -517,6 +520,9 @@ func (suo *SkillUpdateOne) Save(ctx context.Context) (*Skill, error) {
 			return node, err
 		})
 		for i := len(suo.hooks) - 1; i >= 0; i-- {
+			if suo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = suo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, suo.mutation); err != nil {
@@ -728,8 +734,8 @@ func (suo *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error
 	if err = sqlgraph.UpdateNode(ctx, suo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{skill.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

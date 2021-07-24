@@ -398,8 +398,8 @@ func (weq *WorkExperienceQuery) GroupBy(field string, fields ...string) *WorkExp
 //		Select(workexperience.FieldCreatedAt).
 //		Scan(ctx, &v)
 //
-func (weq *WorkExperienceQuery) Select(field string, fields ...string) *WorkExperienceSelect {
-	weq.fields = append([]string{field}, fields...)
+func (weq *WorkExperienceQuery) Select(fields ...string) *WorkExperienceSelect {
+	weq.fields = append(weq.fields, fields...)
 	return &WorkExperienceSelect{WorkExperienceQuery: weq}
 }
 
@@ -536,7 +536,7 @@ func (weq *WorkExperienceQuery) sqlAll(ctx context.Context) ([]*WorkExperience, 
 				s.Where(sql.InValues(workexperience.SkillsPrimaryKey[1], fks...))
 			},
 			ScanValues: func() [2]interface{} {
-				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+				return [2]interface{}{new(sql.NullInt64), new(sql.NullInt64)}
 			},
 			Assign: func(out, in interface{}) error {
 				eout, ok := out.(*sql.NullInt64)
@@ -646,10 +646,14 @@ func (weq *WorkExperienceQuery) querySpec() *sqlgraph.QuerySpec {
 func (weq *WorkExperienceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(weq.driver.Dialect())
 	t1 := builder.Table(workexperience.Table)
-	selector := builder.Select(t1.Columns(workexperience.Columns...)...).From(t1)
+	columns := weq.fields
+	if len(columns) == 0 {
+		columns = workexperience.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if weq.sql != nil {
 		selector = weq.sql
-		selector.Select(selector.Columns(workexperience.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range weq.predicates {
 		p(selector)
@@ -917,13 +921,24 @@ func (wegb *WorkExperienceGroupBy) sqlScan(ctx context.Context, v interface{}) e
 }
 
 func (wegb *WorkExperienceGroupBy) sqlQuery() *sql.Selector {
-	selector := wegb.sql
-	columns := make([]string, 0, len(wegb.fields)+len(wegb.fns))
-	columns = append(columns, wegb.fields...)
+	selector := wegb.sql.Select()
+	aggregation := make([]string, 0, len(wegb.fns))
 	for _, fn := range wegb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(wegb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(wegb.fields)+len(wegb.fns))
+		for _, f := range wegb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(wegb.fields...)...)
 }
 
 // WorkExperienceSelect is the builder for selecting fields of WorkExperience entities.
@@ -1139,16 +1154,10 @@ func (wes *WorkExperienceSelect) BoolX(ctx context.Context) bool {
 
 func (wes *WorkExperienceSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := wes.sqlQuery().Query()
+	query, args := wes.sql.Query()
 	if err := wes.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (wes *WorkExperienceSelect) sqlQuery() sql.Querier {
-	selector := wes.sql
-	selector.Select(selector.Columns(wes.fields...)...)
-	return selector
 }

@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"encoding/json"
 	"fmt"
 	"refernet/internal/ent/job"
 	"refernet/internal/ent/user"
@@ -24,8 +23,6 @@ type Job struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
-	// Locations holds the value of the "locations" field.
-	Locations []string `json:"locations,omitempty"`
 	// MinSalary holds the value of the "min_salary" field.
 	MinSalary uint64 `json:"min_salary,omitempty"`
 	// MaxSalary holds the value of the "max_salary" field.
@@ -85,8 +82,6 @@ func (*Job) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case job.FieldLocations:
-			values[i] = new([]byte)
 		case job.FieldID, job.FieldMinSalary, job.FieldMaxSalary:
 			values[i] = new(sql.NullInt64)
 		case job.FieldTitle, job.FieldSalaryUnit, job.FieldType, job.FieldRequirements, job.FieldResponsibilities, job.FieldBenefits:
@@ -133,15 +128,6 @@ func (j *Job) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field title", values[i])
 			} else if value.Valid {
 				j.Title = value.String
-			}
-		case job.FieldLocations:
-
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field locations", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &j.Locations); err != nil {
-					return fmt.Errorf("unmarshal field locations: %w", err)
-				}
 			}
 		case job.FieldMinSalary:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -236,8 +222,6 @@ func (j *Job) String() string {
 	builder.WriteString(j.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", title=")
 	builder.WriteString(j.Title)
-	builder.WriteString(", locations=")
-	builder.WriteString(fmt.Sprintf("%v", j.Locations))
 	builder.WriteString(", min_salary=")
 	builder.WriteString(fmt.Sprintf("%v", j.MinSalary))
 	builder.WriteString(", max_salary=")

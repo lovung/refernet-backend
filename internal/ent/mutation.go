@@ -44,8 +44,6 @@ type CompanyMutation struct {
 	name          *string
 	overview      *string
 	website       *string
-	industries    *[]string
-	locations     *[]string
 	logo_url      *string
 	size          *company.Size
 	founded_at    *int
@@ -129,8 +127,8 @@ func (m CompanyMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *CompanyMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -318,78 +316,6 @@ func (m *CompanyMutation) ResetWebsite() {
 	m.website = nil
 }
 
-// SetIndustries sets the "industries" field.
-func (m *CompanyMutation) SetIndustries(s []string) {
-	m.industries = &s
-}
-
-// Industries returns the value of the "industries" field in the mutation.
-func (m *CompanyMutation) Industries() (r []string, exists bool) {
-	v := m.industries
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIndustries returns the old "industries" field's value of the Company entity.
-// If the Company object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CompanyMutation) OldIndustries(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldIndustries is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldIndustries requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIndustries: %w", err)
-	}
-	return oldValue.Industries, nil
-}
-
-// ResetIndustries resets all changes to the "industries" field.
-func (m *CompanyMutation) ResetIndustries() {
-	m.industries = nil
-}
-
-// SetLocations sets the "locations" field.
-func (m *CompanyMutation) SetLocations(s []string) {
-	m.locations = &s
-}
-
-// Locations returns the value of the "locations" field in the mutation.
-func (m *CompanyMutation) Locations() (r []string, exists bool) {
-	v := m.locations
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLocations returns the old "locations" field's value of the Company entity.
-// If the Company object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CompanyMutation) OldLocations(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldLocations is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldLocations requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLocations: %w", err)
-	}
-	return oldValue.Locations, nil
-}
-
-// ResetLocations resets all changes to the "locations" field.
-func (m *CompanyMutation) ResetLocations() {
-	m.locations = nil
-}
-
 // SetLogoURL sets the "logo_url" field.
 func (m *CompanyMutation) SetLogoURL(s string) {
 	m.logo_url = &s
@@ -544,6 +470,7 @@ func (m *CompanyMutation) RemoveStaffIDs(ids ...int) {
 		m.removedstaffs = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.staffs, ids[i])
 		m.removedstaffs[ids[i]] = struct{}{}
 	}
 }
@@ -571,6 +498,11 @@ func (m *CompanyMutation) ResetStaffs() {
 	m.removedstaffs = nil
 }
 
+// Where appends a list predicates to the CompanyMutation builder.
+func (m *CompanyMutation) Where(ps ...predicate.Company) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *CompanyMutation) Op() Op {
 	return m.op
@@ -585,7 +517,7 @@ func (m *CompanyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CompanyMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, company.FieldCreatedAt)
 	}
@@ -600,12 +532,6 @@ func (m *CompanyMutation) Fields() []string {
 	}
 	if m.website != nil {
 		fields = append(fields, company.FieldWebsite)
-	}
-	if m.industries != nil {
-		fields = append(fields, company.FieldIndustries)
-	}
-	if m.locations != nil {
-		fields = append(fields, company.FieldLocations)
 	}
 	if m.logo_url != nil {
 		fields = append(fields, company.FieldLogoURL)
@@ -634,10 +560,6 @@ func (m *CompanyMutation) Field(name string) (ent.Value, bool) {
 		return m.Overview()
 	case company.FieldWebsite:
 		return m.Website()
-	case company.FieldIndustries:
-		return m.Industries()
-	case company.FieldLocations:
-		return m.Locations()
 	case company.FieldLogoURL:
 		return m.LogoURL()
 	case company.FieldSize:
@@ -663,10 +585,6 @@ func (m *CompanyMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldOverview(ctx)
 	case company.FieldWebsite:
 		return m.OldWebsite(ctx)
-	case company.FieldIndustries:
-		return m.OldIndustries(ctx)
-	case company.FieldLocations:
-		return m.OldLocations(ctx)
 	case company.FieldLogoURL:
 		return m.OldLogoURL(ctx)
 	case company.FieldSize:
@@ -716,20 +634,6 @@ func (m *CompanyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetWebsite(v)
-		return nil
-	case company.FieldIndustries:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIndustries(v)
-		return nil
-	case company.FieldLocations:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLocations(v)
 		return nil
 	case company.FieldLogoURL:
 		v, ok := value.(string)
@@ -830,12 +734,6 @@ func (m *CompanyMutation) ResetField(name string) error {
 		return nil
 	case company.FieldWebsite:
 		m.ResetWebsite()
-		return nil
-	case company.FieldIndustries:
-		m.ResetIndustries()
-		return nil
-	case company.FieldLocations:
-		m.ResetLocations()
 		return nil
 	case company.FieldLogoURL:
 		m.ResetLogoURL()
@@ -943,7 +841,6 @@ type JobMutation struct {
 	created_at       *time.Time
 	updated_at       *time.Time
 	title            *string
-	locations        *[]string
 	min_salary       *uint64
 	addmin_salary    *uint64
 	max_salary       *uint64
@@ -1034,8 +931,8 @@ func (m JobMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *JobMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -1149,42 +1046,6 @@ func (m *JobMutation) OldTitle(ctx context.Context) (v string, err error) {
 // ResetTitle resets all changes to the "title" field.
 func (m *JobMutation) ResetTitle() {
 	m.title = nil
-}
-
-// SetLocations sets the "locations" field.
-func (m *JobMutation) SetLocations(s []string) {
-	m.locations = &s
-}
-
-// Locations returns the value of the "locations" field in the mutation.
-func (m *JobMutation) Locations() (r []string, exists bool) {
-	v := m.locations
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLocations returns the old "locations" field's value of the Job entity.
-// If the Job object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *JobMutation) OldLocations(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldLocations is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldLocations requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLocations: %w", err)
-	}
-	return oldValue.Locations, nil
-}
-
-// ResetLocations resets all changes to the "locations" field.
-func (m *JobMutation) ResetLocations() {
-	m.locations = nil
 }
 
 // SetMinSalary sets the "min_salary" field.
@@ -1544,6 +1405,7 @@ func (m *JobMutation) RemoveSkillIDs(ids ...int) {
 		m.removedskills = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.skills, ids[i])
 		m.removedskills[ids[i]] = struct{}{}
 	}
 }
@@ -1571,6 +1433,11 @@ func (m *JobMutation) ResetSkills() {
 	m.removedskills = nil
 }
 
+// Where appends a list predicates to the JobMutation builder.
+func (m *JobMutation) Where(ps ...predicate.Job) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *JobMutation) Op() Op {
 	return m.op
@@ -1585,7 +1452,7 @@ func (m *JobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *JobMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, job.FieldCreatedAt)
 	}
@@ -1594,9 +1461,6 @@ func (m *JobMutation) Fields() []string {
 	}
 	if m.title != nil {
 		fields = append(fields, job.FieldTitle)
-	}
-	if m.locations != nil {
-		fields = append(fields, job.FieldLocations)
 	}
 	if m.min_salary != nil {
 		fields = append(fields, job.FieldMinSalary)
@@ -1633,8 +1497,6 @@ func (m *JobMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdatedAt()
 	case job.FieldTitle:
 		return m.Title()
-	case job.FieldLocations:
-		return m.Locations()
 	case job.FieldMinSalary:
 		return m.MinSalary()
 	case job.FieldMaxSalary:
@@ -1664,8 +1526,6 @@ func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldUpdatedAt(ctx)
 	case job.FieldTitle:
 		return m.OldTitle(ctx)
-	case job.FieldLocations:
-		return m.OldLocations(ctx)
 	case job.FieldMinSalary:
 		return m.OldMinSalary(ctx)
 	case job.FieldMaxSalary:
@@ -1709,13 +1569,6 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTitle(v)
-		return nil
-	case job.FieldLocations:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLocations(v)
 		return nil
 	case job.FieldMinSalary:
 		v, ok := value.(uint64)
@@ -1850,9 +1703,6 @@ func (m *JobMutation) ResetField(name string) error {
 		return nil
 	case job.FieldTitle:
 		m.ResetTitle()
-		return nil
-	case job.FieldLocations:
-		m.ResetLocations()
 		return nil
 	case job.FieldMinSalary:
 		m.ResetMinSalary()
@@ -2073,8 +1923,8 @@ func (m SkillMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *SkillMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -2252,6 +2102,7 @@ func (m *SkillMutation) RemoveExperienceIDs(ids ...int) {
 		m.removedexperiences = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.experiences, ids[i])
 		m.removedexperiences[ids[i]] = struct{}{}
 	}
 }
@@ -2305,6 +2156,7 @@ func (m *SkillMutation) RemoveJobIDs(ids ...int) {
 		m.removedjobs = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.jobs, ids[i])
 		m.removedjobs[ids[i]] = struct{}{}
 	}
 }
@@ -2330,6 +2182,11 @@ func (m *SkillMutation) ResetJobs() {
 	m.jobs = nil
 	m.clearedjobs = false
 	m.removedjobs = nil
+}
+
+// Where appends a list predicates to the SkillMutation builder.
+func (m *SkillMutation) Where(ps ...predicate.Skill) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -2704,8 +2561,8 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *UserMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -3171,6 +3028,7 @@ func (m *UserMutation) RemoveJobIDs(ids ...int) {
 		m.removedjobs = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.jobs, ids[i])
 		m.removedjobs[ids[i]] = struct{}{}
 	}
 }
@@ -3224,6 +3082,7 @@ func (m *UserMutation) RemoveExperienceIDs(ids ...int) {
 		m.removedexperiences = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.experiences, ids[i])
 		m.removedexperiences[ids[i]] = struct{}{}
 	}
 }
@@ -3249,6 +3108,11 @@ func (m *UserMutation) ResetExperiences() {
 	m.experiences = nil
 	m.clearedexperiences = false
 	m.removedexperiences = nil
+}
+
+// Where appends a list predicates to the UserMutation builder.
+func (m *UserMutation) Where(ps ...predicate.User) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -3755,8 +3619,8 @@ func (m WorkExperienceMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *WorkExperienceMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -4133,6 +3997,7 @@ func (m *WorkExperienceMutation) RemoveSkillIDs(ids ...int) {
 		m.removedskills = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.skills, ids[i])
 		m.removedskills[ids[i]] = struct{}{}
 	}
 }
@@ -4158,6 +4023,11 @@ func (m *WorkExperienceMutation) ResetSkills() {
 	m.skills = nil
 	m.clearedskills = false
 	m.removedskills = nil
+}
+
+// Where appends a list predicates to the WorkExperienceMutation builder.
+func (m *WorkExperienceMutation) Where(ps ...predicate.WorkExperience) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.

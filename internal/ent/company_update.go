@@ -22,9 +22,9 @@ type CompanyUpdate struct {
 	mutation *CompanyMutation
 }
 
-// Where adds a new predicate for the CompanyUpdate builder.
+// Where appends a list predicates to the CompanyUpdate builder.
 func (cu *CompanyUpdate) Where(ps ...predicate.Company) *CompanyUpdate {
-	cu.mutation.predicates = append(cu.mutation.predicates, ps...)
+	cu.mutation.Where(ps...)
 	return cu
 }
 
@@ -57,18 +57,6 @@ func (cu *CompanyUpdate) SetOverview(s string) *CompanyUpdate {
 // SetWebsite sets the "website" field.
 func (cu *CompanyUpdate) SetWebsite(s string) *CompanyUpdate {
 	cu.mutation.SetWebsite(s)
-	return cu
-}
-
-// SetIndustries sets the "industries" field.
-func (cu *CompanyUpdate) SetIndustries(s []string) *CompanyUpdate {
-	cu.mutation.SetIndustries(s)
-	return cu
-}
-
-// SetLocations sets the "locations" field.
-func (cu *CompanyUpdate) SetLocations(s []string) *CompanyUpdate {
-	cu.mutation.SetLocations(s)
 	return cu
 }
 
@@ -172,6 +160,9 @@ func (cu *CompanyUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(cu.hooks) - 1; i >= 0; i-- {
+			if cu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = cu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, cu.mutation); err != nil {
@@ -284,20 +275,6 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: company.FieldWebsite,
 		})
 	}
-	if value, ok := cu.mutation.Industries(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: company.FieldIndustries,
-		})
-	}
-	if value, ok := cu.mutation.Locations(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: company.FieldLocations,
-		})
-	}
 	if value, ok := cu.mutation.LogoURL(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -383,8 +360,8 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{company.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -428,18 +405,6 @@ func (cuo *CompanyUpdateOne) SetOverview(s string) *CompanyUpdateOne {
 // SetWebsite sets the "website" field.
 func (cuo *CompanyUpdateOne) SetWebsite(s string) *CompanyUpdateOne {
 	cuo.mutation.SetWebsite(s)
-	return cuo
-}
-
-// SetIndustries sets the "industries" field.
-func (cuo *CompanyUpdateOne) SetIndustries(s []string) *CompanyUpdateOne {
-	cuo.mutation.SetIndustries(s)
-	return cuo
-}
-
-// SetLocations sets the "locations" field.
-func (cuo *CompanyUpdateOne) SetLocations(s []string) *CompanyUpdateOne {
-	cuo.mutation.SetLocations(s)
 	return cuo
 }
 
@@ -550,6 +515,9 @@ func (cuo *CompanyUpdateOne) Save(ctx context.Context) (*Company, error) {
 			return node, err
 		})
 		for i := len(cuo.hooks) - 1; i >= 0; i-- {
+			if cuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = cuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, cuo.mutation); err != nil {
@@ -679,20 +647,6 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 			Column: company.FieldWebsite,
 		})
 	}
-	if value, ok := cuo.mutation.Industries(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: company.FieldIndustries,
-		})
-	}
-	if value, ok := cuo.mutation.Locations(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: company.FieldLocations,
-		})
-	}
 	if value, ok := cuo.mutation.LogoURL(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -781,8 +735,8 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 	if err = sqlgraph.UpdateNode(ctx, cuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{company.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

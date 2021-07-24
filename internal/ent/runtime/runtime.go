@@ -5,6 +5,6 @@ package runtime
 // The schema-stitching logic is generated in refernet/internal/ent/runtime.go
 
 const (
-	Version = "v0.8.0"                                          // Version of ent codegen.
-	Sum     = "h1:xirrW//1oda7pp0bz+XssSOv4/C3nmgYQOxjIfljFt8=" // Sum of ent codegen.
+	Version = "v0.8.1-0.20210723120047-cdfa3e35bbaf"            // Version of ent codegen.
+	Sum     = "h1:snVl+xIuXfuduB7ZAafDX7WvIbhqjLNFvmi5mjupvv8=" // Sum of ent codegen.
 )

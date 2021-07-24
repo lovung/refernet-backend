@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"encoding/json"
 	"fmt"
 	"refernet/internal/ent/company"
 	"strings"
@@ -27,10 +26,6 @@ type Company struct {
 	Overview string `json:"overview,omitempty"`
 	// Website holds the value of the "website" field.
 	Website string `json:"website,omitempty"`
-	// Industries holds the value of the "industries" field.
-	Industries []string `json:"industries,omitempty"`
-	// Locations holds the value of the "locations" field.
-	Locations []string `json:"locations,omitempty"`
 	// LogoURL holds the value of the "logo_url" field.
 	LogoURL string `json:"logo_url,omitempty"`
 	// Size holds the value of the "size" field.
@@ -65,8 +60,6 @@ func (*Company) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case company.FieldIndustries, company.FieldLocations:
-			values[i] = new([]byte)
 		case company.FieldID, company.FieldFoundedAt:
 			values[i] = new(sql.NullInt64)
 		case company.FieldName, company.FieldOverview, company.FieldWebsite, company.FieldLogoURL, company.FieldSize:
@@ -123,24 +116,6 @@ func (c *Company) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field website", values[i])
 			} else if value.Valid {
 				c.Website = value.String
-			}
-		case company.FieldIndustries:
-
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field industries", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &c.Industries); err != nil {
-					return fmt.Errorf("unmarshal field industries: %w", err)
-				}
-			}
-		case company.FieldLocations:
-
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field locations", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &c.Locations); err != nil {
-					return fmt.Errorf("unmarshal field locations: %w", err)
-				}
 			}
 		case company.FieldLogoURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -203,10 +178,6 @@ func (c *Company) String() string {
 	builder.WriteString(c.Overview)
 	builder.WriteString(", website=")
 	builder.WriteString(c.Website)
-	builder.WriteString(", industries=")
-	builder.WriteString(fmt.Sprintf("%v", c.Industries))
-	builder.WriteString(", locations=")
-	builder.WriteString(fmt.Sprintf("%v", c.Locations))
 	builder.WriteString(", logo_url=")
 	builder.WriteString(c.LogoURL)
 	builder.WriteString(", size=")

@@ -169,11 +169,17 @@ func (wec *WorkExperienceCreate) Save(ctx context.Context) (*WorkExperience, err
 				return nil, err
 			}
 			wec.mutation = mutation
-			node, err = wec.sqlSave(ctx)
+			if node, err = wec.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
 		for i := len(wec.hooks) - 1; i >= 0; i-- {
+			if wec.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = wec.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wec.mutation); err != nil {
@@ -192,6 +198,19 @@ func (wec *WorkExperienceCreate) SaveX(ctx context.Context) *WorkExperience {
 	return v
 }
 
+// Exec executes the query.
+func (wec *WorkExperienceCreate) Exec(ctx context.Context) error {
+	_, err := wec.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (wec *WorkExperienceCreate) ExecX(ctx context.Context) {
+	if err := wec.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // defaults sets the default values of the builder before save.
 func (wec *WorkExperienceCreate) defaults() {
 	if _, ok := wec.mutation.CreatedAt(); !ok {
@@ -207,36 +226,36 @@ func (wec *WorkExperienceCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (wec *WorkExperienceCreate) check() error {
 	if _, ok := wec.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New("ent: missing required field \"created_at\"")}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
 	}
 	if _, ok := wec.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New("ent: missing required field \"updated_at\"")}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
 	if _, ok := wec.mutation.Title(); !ok {
-		return &ValidationError{Name: "title", err: errors.New("ent: missing required field \"title\"")}
+		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "title"`)}
 	}
 	if v, ok := wec.mutation.Title(); ok {
 		if err := workexperience.TitleValidator(v); err != nil {
-			return &ValidationError{Name: "title", err: fmt.Errorf("ent: validator failed for field \"title\": %w", err)}
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "title": %w`, err)}
 		}
 	}
 	if _, ok := wec.mutation.Location(); !ok {
-		return &ValidationError{Name: "location", err: errors.New("ent: missing required field \"location\"")}
+		return &ValidationError{Name: "location", err: errors.New(`ent: missing required field "location"`)}
 	}
 	if v, ok := wec.mutation.Location(); ok {
 		if err := workexperience.LocationValidator(v); err != nil {
-			return &ValidationError{Name: "location", err: fmt.Errorf("ent: validator failed for field \"location\": %w", err)}
+			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "location": %w`, err)}
 		}
 	}
 	if _, ok := wec.mutation.StartDate(); !ok {
-		return &ValidationError{Name: "start_date", err: errors.New("ent: missing required field \"start_date\"")}
+		return &ValidationError{Name: "start_date", err: errors.New(`ent: missing required field "start_date"`)}
 	}
 	if _, ok := wec.mutation.Description(); !ok {
-		return &ValidationError{Name: "description", err: errors.New("ent: missing required field \"description\"")}
+		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "description"`)}
 	}
 	if v, ok := wec.mutation.Description(); ok {
 		if err := workexperience.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf("ent: validator failed for field \"description\": %w", err)}
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "description": %w`, err)}
 		}
 	}
 	return nil
@@ -245,8 +264,8 @@ func (wec *WorkExperienceCreate) check() error {
 func (wec *WorkExperienceCreate) sqlSave(ctx context.Context) (*WorkExperience, error) {
 	_node, _spec := wec.createSpec()
 	if err := sqlgraph.CreateNode(ctx, wec.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -415,15 +434,16 @@ func (wecb *WorkExperienceCreateBulk) Save(ctx context.Context) ([]*WorkExperien
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, wecb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

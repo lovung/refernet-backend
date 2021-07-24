@@ -25,12 +25,12 @@ const (
 	EdgeJobs = "jobs"
 	// Table holds the table name of the skill in the database.
 	Table = "skills"
-	// ExperiencesTable is the table the holds the experiences relation/edge. The primary key declared below.
+	// ExperiencesTable is the table that holds the experiences relation/edge. The primary key declared below.
 	ExperiencesTable = "skill_experiences"
 	// ExperiencesInverseTable is the table name for the WorkExperience entity.
 	// It exists in this package in order to avoid circular dependency with the "workexperience" package.
 	ExperiencesInverseTable = "work_experiences"
-	// JobsTable is the table the holds the jobs relation/edge. The primary key declared below.
+	// JobsTable is the table that holds the jobs relation/edge. The primary key declared below.
 	JobsTable = "skill_jobs"
 	// JobsInverseTable is the table name for the Job entity.
 	// It exists in this package in order to avoid circular dependency with the "job" package.
