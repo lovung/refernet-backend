@@ -55,5 +55,6 @@ func (Company) Edges() []ent.Edge {
 func (Company) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
+		entproto.Service(),
 	}
 }

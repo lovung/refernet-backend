@@ -35,7 +35,7 @@ var (
 		{Name: "min_salary", Type: field.TypeUint64},
 		{Name: "max_salary", Type: field.TypeUint64},
 		{Name: "salary_unit", Type: field.TypeEnum, Enums: []string{"VND", "USD"}, Default: "VND"},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"fulltime", "parttime", "contract", "intern", "freelance", "other"}, Default: "fulltime"},
+		{Name: "employment_type", Type: field.TypeEnum, Enums: []string{"fulltime", "parttime", "contract", "intern", "freelance", "other"}, Default: "fulltime"},
 		{Name: "requirements", Type: field.TypeString, Size: 1024},
 		{Name: "responsibilities", Type: field.TypeString, Size: 1024},
 		{Name: "benefits", Type: field.TypeString, Size: 1024},

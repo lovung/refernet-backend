@@ -37,5 +37,6 @@ func (Skill) Edges() []ent.Edge {
 func (Skill) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
+		entproto.Service(),
 	}
 }

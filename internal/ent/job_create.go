@@ -82,16 +82,16 @@ func (jc *JobCreate) SetNillableSalaryUnit(ju *job.SalaryUnit) *JobCreate {
 	return jc
 }
 
-// SetType sets the "type" field.
-func (jc *JobCreate) SetType(j job.Type) *JobCreate {
-	jc.mutation.SetType(j)
+// SetEmploymentType sets the "employment_type" field.
+func (jc *JobCreate) SetEmploymentType(jt job.EmploymentType) *JobCreate {
+	jc.mutation.SetEmploymentType(jt)
 	return jc
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (jc *JobCreate) SetNillableType(j *job.Type) *JobCreate {
-	if j != nil {
-		jc.SetType(*j)
+// SetNillableEmploymentType sets the "employment_type" field if the given value is not nil.
+func (jc *JobCreate) SetNillableEmploymentType(jt *job.EmploymentType) *JobCreate {
+	if jt != nil {
+		jc.SetEmploymentType(*jt)
 	}
 	return jc
 }
@@ -231,9 +231,9 @@ func (jc *JobCreate) defaults() {
 		v := job.DefaultSalaryUnit
 		jc.mutation.SetSalaryUnit(v)
 	}
-	if _, ok := jc.mutation.GetType(); !ok {
-		v := job.DefaultType
-		jc.mutation.SetType(v)
+	if _, ok := jc.mutation.EmploymentType(); !ok {
+		v := job.DefaultEmploymentType
+		jc.mutation.SetEmploymentType(v)
 	}
 }
 
@@ -277,12 +277,12 @@ func (jc *JobCreate) check() error {
 			return &ValidationError{Name: "salary_unit", err: fmt.Errorf(`ent: validator failed for field "salary_unit": %w`, err)}
 		}
 	}
-	if _, ok := jc.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "type"`)}
+	if _, ok := jc.mutation.EmploymentType(); !ok {
+		return &ValidationError{Name: "employment_type", err: errors.New(`ent: missing required field "employment_type"`)}
 	}
-	if v, ok := jc.mutation.GetType(); ok {
-		if err := job.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "type": %w`, err)}
+	if v, ok := jc.mutation.EmploymentType(); ok {
+		if err := job.EmploymentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "employment_type", err: fmt.Errorf(`ent: validator failed for field "employment_type": %w`, err)}
 		}
 	}
 	if _, ok := jc.mutation.Requirements(); !ok {
@@ -384,13 +384,13 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 		})
 		_node.SalaryUnit = value
 	}
-	if value, ok := jc.mutation.GetType(); ok {
+	if value, ok := jc.mutation.EmploymentType(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
 			Value:  value,
-			Column: job.FieldType,
+			Column: job.FieldEmploymentType,
 		})
-		_node.Type = value
+		_node.EmploymentType = value
 	}
 	if value, ok := jc.mutation.Requirements(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

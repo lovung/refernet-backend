@@ -29,8 +29,8 @@ type Job struct {
 	MaxSalary uint64 `json:"max_salary,omitempty"`
 	// SalaryUnit holds the value of the "salary_unit" field.
 	SalaryUnit job.SalaryUnit `json:"salary_unit,omitempty"`
-	// Type holds the value of the "type" field.
-	Type job.Type `json:"type,omitempty"`
+	// EmploymentType holds the value of the "employment_type" field.
+	EmploymentType job.EmploymentType `json:"employment_type,omitempty"`
 	// Requirements holds the value of the "requirements" field.
 	Requirements string `json:"requirements,omitempty"`
 	// Responsibilities holds the value of the "responsibilities" field.
@@ -84,7 +84,7 @@ func (*Job) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case job.FieldID, job.FieldMinSalary, job.FieldMaxSalary:
 			values[i] = new(sql.NullInt64)
-		case job.FieldTitle, job.FieldSalaryUnit, job.FieldType, job.FieldRequirements, job.FieldResponsibilities, job.FieldBenefits:
+		case job.FieldTitle, job.FieldSalaryUnit, job.FieldEmploymentType, job.FieldRequirements, job.FieldResponsibilities, job.FieldBenefits:
 			values[i] = new(sql.NullString)
 		case job.FieldCreatedAt, job.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -147,11 +147,11 @@ func (j *Job) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				j.SalaryUnit = job.SalaryUnit(value.String)
 			}
-		case job.FieldType:
+		case job.FieldEmploymentType:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field type", values[i])
+				return fmt.Errorf("unexpected type %T for field employment_type", values[i])
 			} else if value.Valid {
-				j.Type = job.Type(value.String)
+				j.EmploymentType = job.EmploymentType(value.String)
 			}
 		case job.FieldRequirements:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -228,8 +228,8 @@ func (j *Job) String() string {
 	builder.WriteString(fmt.Sprintf("%v", j.MaxSalary))
 	builder.WriteString(", salary_unit=")
 	builder.WriteString(fmt.Sprintf("%v", j.SalaryUnit))
-	builder.WriteString(", type=")
-	builder.WriteString(fmt.Sprintf("%v", j.Type))
+	builder.WriteString(", employment_type=")
+	builder.WriteString(fmt.Sprintf("%v", j.EmploymentType))
 	builder.WriteString(", requirements=")
 	builder.WriteString(j.Requirements)
 	builder.WriteString(", responsibilities=")

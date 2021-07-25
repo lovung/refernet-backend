@@ -3,6 +3,8 @@ syntax = "proto3";
 
 package entpb;
 
+import "google/protobuf/empty.proto";
+
 import "google/protobuf/timestamp.proto";
 
 option go_package = "refernet/internal/ent/proto/entpb";
@@ -41,6 +43,32 @@ message Company {
   }
 }
 
+message CreateCompanyRequest {
+  Company company = 1;
+}
+
+message GetCompanyRequest {
+  int32 id = 1;
+
+  View view = 2;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message UpdateCompanyRequest {
+  Company company = 1;
+}
+
+message DeleteCompanyRequest {
+  int32 id = 1;
+}
+
 message Job {
   int32 id = 1;
 
@@ -56,7 +84,7 @@ message Job {
 
   SalaryUnit salary_unit = 7;
 
-  Type type = 8;
+  EmploymentType employment_type = 8;
 
   string requirements = 9;
 
@@ -74,7 +102,7 @@ message Job {
     USD = 1;
   }
 
-  enum Type {
+  enum EmploymentType {
     FULLTIME = 0;
 
     PARTTIME = 1;
@@ -87,6 +115,32 @@ message Job {
 
     OTHER = 5;
   }
+}
+
+message CreateJobRequest {
+  Job job = 1;
+}
+
+message GetJobRequest {
+  int32 id = 1;
+
+  View view = 2;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message UpdateJobRequest {
+  Job job = 1;
+}
+
+message DeleteJobRequest {
+  int32 id = 1;
 }
 
 message Skill {
@@ -103,6 +157,32 @@ message Skill {
   repeated WorkExperience experiences = 6;
 
   repeated Job jobs = 7;
+}
+
+message CreateSkillRequest {
+  Skill skill = 1;
+}
+
+message GetSkillRequest {
+  int32 id = 1;
+
+  View view = 2;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message UpdateSkillRequest {
+  Skill skill = 1;
+}
+
+message DeleteSkillRequest {
+  int32 id = 1;
 }
 
 message User {
@@ -145,6 +225,32 @@ message User {
   }
 }
 
+message CreateUserRequest {
+  User user = 1;
+}
+
+message GetUserRequest {
+  int32 id = 1;
+
+  View view = 2;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message UpdateUserRequest {
+  User user = 1;
+}
+
+message DeleteUserRequest {
+  int32 id = 1;
+}
+
 message WorkExperience {
   int32 id = 1;
 
@@ -167,4 +273,80 @@ message WorkExperience {
   Company in_company = 10;
 
   repeated Skill skills = 11;
+}
+
+message CreateWorkExperienceRequest {
+  WorkExperience work_experience = 1;
+}
+
+message GetWorkExperienceRequest {
+  int32 id = 1;
+
+  View view = 2;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message UpdateWorkExperienceRequest {
+  WorkExperience work_experience = 1;
+}
+
+message DeleteWorkExperienceRequest {
+  int32 id = 1;
+}
+
+service CompanyService {
+  rpc Create ( CreateCompanyRequest ) returns ( Company );
+
+  rpc Get ( GetCompanyRequest ) returns ( Company );
+
+  rpc Update ( UpdateCompanyRequest ) returns ( Company );
+
+  rpc Delete ( DeleteCompanyRequest ) returns ( google.protobuf.Empty );
+}
+
+service JobService {
+  rpc Create ( CreateJobRequest ) returns ( Job );
+
+  rpc Get ( GetJobRequest ) returns ( Job );
+
+  rpc Update ( UpdateJobRequest ) returns ( Job );
+
+  rpc Delete ( DeleteJobRequest ) returns ( google.protobuf.Empty );
+}
+
+service SkillService {
+  rpc Create ( CreateSkillRequest ) returns ( Skill );
+
+  rpc Get ( GetSkillRequest ) returns ( Skill );
+
+  rpc Update ( UpdateSkillRequest ) returns ( Skill );
+
+  rpc Delete ( DeleteSkillRequest ) returns ( google.protobuf.Empty );
+}
+
+service UserService {
+  rpc Create ( CreateUserRequest ) returns ( User );
+
+  rpc Get ( GetUserRequest ) returns ( User );
+
+  rpc Update ( UpdateUserRequest ) returns ( User );
+
+  rpc Delete ( DeleteUserRequest ) returns ( google.protobuf.Empty );
+}
+
+service WorkExperienceService {
+  rpc Create ( CreateWorkExperienceRequest ) returns ( WorkExperience );
+
+  rpc Get ( GetWorkExperienceRequest ) returns ( WorkExperience );
+
+  rpc Update ( UpdateWorkExperienceRequest ) returns ( WorkExperience );
+
+  rpc Delete ( DeleteWorkExperienceRequest ) returns ( google.protobuf.Empty );
 }

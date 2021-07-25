@@ -89,16 +89,16 @@ func (ju *JobUpdate) SetNillableSalaryUnit(value *job.SalaryUnit) *JobUpdate {
 	return ju
 }
 
-// SetType sets the "type" field.
-func (ju *JobUpdate) SetType(j job.Type) *JobUpdate {
-	ju.mutation.SetType(j)
+// SetEmploymentType sets the "employment_type" field.
+func (ju *JobUpdate) SetEmploymentType(jt job.EmploymentType) *JobUpdate {
+	ju.mutation.SetEmploymentType(jt)
 	return ju
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableType(j *job.Type) *JobUpdate {
-	if j != nil {
-		ju.SetType(*j)
+// SetNillableEmploymentType sets the "employment_type" field if the given value is not nil.
+func (ju *JobUpdate) SetNillableEmploymentType(jt *job.EmploymentType) *JobUpdate {
+	if jt != nil {
+		ju.SetEmploymentType(*jt)
 	}
 	return ju
 }
@@ -269,9 +269,9 @@ func (ju *JobUpdate) check() error {
 			return &ValidationError{Name: "salary_unit", err: fmt.Errorf("ent: validator failed for field \"salary_unit\": %w", err)}
 		}
 	}
-	if v, ok := ju.mutation.GetType(); ok {
-		if err := job.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+	if v, ok := ju.mutation.EmploymentType(); ok {
+		if err := job.EmploymentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "employment_type", err: fmt.Errorf("ent: validator failed for field \"employment_type\": %w", err)}
 		}
 	}
 	if v, ok := ju.mutation.Requirements(); ok {
@@ -359,11 +359,11 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: job.FieldSalaryUnit,
 		})
 	}
-	if value, ok := ju.mutation.GetType(); ok {
+	if value, ok := ju.mutation.EmploymentType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
 			Value:  value,
-			Column: job.FieldType,
+			Column: job.FieldEmploymentType,
 		})
 	}
 	if value, ok := ju.mutation.Requirements(); ok {
@@ -555,16 +555,16 @@ func (juo *JobUpdateOne) SetNillableSalaryUnit(ju *job.SalaryUnit) *JobUpdateOne
 	return juo
 }
 
-// SetType sets the "type" field.
-func (juo *JobUpdateOne) SetType(j job.Type) *JobUpdateOne {
-	juo.mutation.SetType(j)
+// SetEmploymentType sets the "employment_type" field.
+func (juo *JobUpdateOne) SetEmploymentType(jt job.EmploymentType) *JobUpdateOne {
+	juo.mutation.SetEmploymentType(jt)
 	return juo
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableType(j *job.Type) *JobUpdateOne {
-	if j != nil {
-		juo.SetType(*j)
+// SetNillableEmploymentType sets the "employment_type" field if the given value is not nil.
+func (juo *JobUpdateOne) SetNillableEmploymentType(jt *job.EmploymentType) *JobUpdateOne {
+	if jt != nil {
+		juo.SetEmploymentType(*jt)
 	}
 	return juo
 }
@@ -742,9 +742,9 @@ func (juo *JobUpdateOne) check() error {
 			return &ValidationError{Name: "salary_unit", err: fmt.Errorf("ent: validator failed for field \"salary_unit\": %w", err)}
 		}
 	}
-	if v, ok := juo.mutation.GetType(); ok {
-		if err := job.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+	if v, ok := juo.mutation.EmploymentType(); ok {
+		if err := job.EmploymentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "employment_type", err: fmt.Errorf("ent: validator failed for field \"employment_type\": %w", err)}
 		}
 	}
 	if v, ok := juo.mutation.Requirements(); ok {
@@ -849,11 +849,11 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 			Column: job.FieldSalaryUnit,
 		})
 	}
-	if value, ok := juo.mutation.GetType(); ok {
+	if value, ok := juo.mutation.EmploymentType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
 			Value:  value,
-			Column: job.FieldType,
+			Column: job.FieldEmploymentType,
 		})
 	}
 	if value, ok := juo.mutation.Requirements(); ok {

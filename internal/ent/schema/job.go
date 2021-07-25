@@ -34,7 +34,7 @@ func (Job) Fields() []ent.Field {
 					},
 				),
 			),
-		field.Enum("type").
+		field.Enum("employment_type").
 			Values("fulltime", "parttime", "contract", "intern", "freelance", "other").
 			Default("fulltime").
 			Annotations(
@@ -68,5 +68,6 @@ func (Job) Edges() []ent.Edge {
 func (Job) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
+		entproto.Service(),
 	}
 }

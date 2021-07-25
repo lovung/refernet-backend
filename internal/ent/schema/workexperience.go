@@ -41,5 +41,6 @@ func (WorkExperience) Edges() []ent.Edge {
 func (WorkExperience) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
+		entproto.Service(),
 	}
 }

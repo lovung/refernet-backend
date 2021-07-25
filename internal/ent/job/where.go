@@ -612,22 +612,22 @@ func SalaryUnitNotIn(vs ...SalaryUnit) predicate.Job {
 	})
 }
 
-// TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v Type) predicate.Job {
+// EmploymentTypeEQ applies the EQ predicate on the "employment_type" field.
+func EmploymentTypeEQ(v EmploymentType) predicate.Job {
 	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldType), v))
+		s.Where(sql.EQ(s.C(FieldEmploymentType), v))
 	})
 }
 
-// TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v Type) predicate.Job {
+// EmploymentTypeNEQ applies the NEQ predicate on the "employment_type" field.
+func EmploymentTypeNEQ(v EmploymentType) predicate.Job {
 	return predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldType), v))
+		s.Where(sql.NEQ(s.C(FieldEmploymentType), v))
 	})
 }
 
-// TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...Type) predicate.Job {
+// EmploymentTypeIn applies the In predicate on the "employment_type" field.
+func EmploymentTypeIn(vs ...EmploymentType) predicate.Job {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -639,12 +639,12 @@ func TypeIn(vs ...Type) predicate.Job {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldType), v...))
+		s.Where(sql.In(s.C(FieldEmploymentType), v...))
 	})
 }
 
-// TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...Type) predicate.Job {
+// EmploymentTypeNotIn applies the NotIn predicate on the "employment_type" field.
+func EmploymentTypeNotIn(vs ...EmploymentType) predicate.Job {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -656,7 +656,7 @@ func TypeNotIn(vs ...Type) predicate.Job {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldType), v...))
+		s.Where(sql.NotIn(s.C(FieldEmploymentType), v...))
 	})
 }
 

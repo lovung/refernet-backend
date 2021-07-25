@@ -846,7 +846,7 @@ type JobMutation struct {
 	max_salary       *uint64
 	addmax_salary    *uint64
 	salary_unit      *job.SalaryUnit
-	_type            *job.Type
+	employment_type  *job.EmploymentType
 	requirements     *string
 	responsibilities *string
 	benefits         *string
@@ -1196,40 +1196,40 @@ func (m *JobMutation) ResetSalaryUnit() {
 	m.salary_unit = nil
 }
 
-// SetType sets the "type" field.
-func (m *JobMutation) SetType(j job.Type) {
-	m._type = &j
+// SetEmploymentType sets the "employment_type" field.
+func (m *JobMutation) SetEmploymentType(jt job.EmploymentType) {
+	m.employment_type = &jt
 }
 
-// GetType returns the value of the "type" field in the mutation.
-func (m *JobMutation) GetType() (r job.Type, exists bool) {
-	v := m._type
+// EmploymentType returns the value of the "employment_type" field in the mutation.
+func (m *JobMutation) EmploymentType() (r job.EmploymentType, exists bool) {
+	v := m.employment_type
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldType returns the old "type" field's value of the Job entity.
+// OldEmploymentType returns the old "employment_type" field's value of the Job entity.
 // If the Job object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *JobMutation) OldType(ctx context.Context) (v job.Type, err error) {
+func (m *JobMutation) OldEmploymentType(ctx context.Context) (v job.EmploymentType, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldType is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldEmploymentType is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldType requires an ID field in the mutation")
+		return v, fmt.Errorf("OldEmploymentType requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
+		return v, fmt.Errorf("querying old value for OldEmploymentType: %w", err)
 	}
-	return oldValue.Type, nil
+	return oldValue.EmploymentType, nil
 }
 
-// ResetType resets all changes to the "type" field.
-func (m *JobMutation) ResetType() {
-	m._type = nil
+// ResetEmploymentType resets all changes to the "employment_type" field.
+func (m *JobMutation) ResetEmploymentType() {
+	m.employment_type = nil
 }
 
 // SetRequirements sets the "requirements" field.
@@ -1471,8 +1471,8 @@ func (m *JobMutation) Fields() []string {
 	if m.salary_unit != nil {
 		fields = append(fields, job.FieldSalaryUnit)
 	}
-	if m._type != nil {
-		fields = append(fields, job.FieldType)
+	if m.employment_type != nil {
+		fields = append(fields, job.FieldEmploymentType)
 	}
 	if m.requirements != nil {
 		fields = append(fields, job.FieldRequirements)
@@ -1503,8 +1503,8 @@ func (m *JobMutation) Field(name string) (ent.Value, bool) {
 		return m.MaxSalary()
 	case job.FieldSalaryUnit:
 		return m.SalaryUnit()
-	case job.FieldType:
-		return m.GetType()
+	case job.FieldEmploymentType:
+		return m.EmploymentType()
 	case job.FieldRequirements:
 		return m.Requirements()
 	case job.FieldResponsibilities:
@@ -1532,8 +1532,8 @@ func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldMaxSalary(ctx)
 	case job.FieldSalaryUnit:
 		return m.OldSalaryUnit(ctx)
-	case job.FieldType:
-		return m.OldType(ctx)
+	case job.FieldEmploymentType:
+		return m.OldEmploymentType(ctx)
 	case job.FieldRequirements:
 		return m.OldRequirements(ctx)
 	case job.FieldResponsibilities:
@@ -1591,12 +1591,12 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSalaryUnit(v)
 		return nil
-	case job.FieldType:
-		v, ok := value.(job.Type)
+	case job.FieldEmploymentType:
+		v, ok := value.(job.EmploymentType)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetType(v)
+		m.SetEmploymentType(v)
 		return nil
 	case job.FieldRequirements:
 		v, ok := value.(string)
@@ -1713,8 +1713,8 @@ func (m *JobMutation) ResetField(name string) error {
 	case job.FieldSalaryUnit:
 		m.ResetSalaryUnit()
 		return nil
-	case job.FieldType:
-		m.ResetType()
+	case job.FieldEmploymentType:
+		m.ResetEmploymentType()
 		return nil
 	case job.FieldRequirements:
 		m.ResetRequirements()

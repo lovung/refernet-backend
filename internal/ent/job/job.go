@@ -24,8 +24,8 @@ const (
 	FieldMaxSalary = "max_salary"
 	// FieldSalaryUnit holds the string denoting the salary_unit field in the database.
 	FieldSalaryUnit = "salary_unit"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
+	// FieldEmploymentType holds the string denoting the employment_type field in the database.
+	FieldEmploymentType = "employment_type"
 	// FieldRequirements holds the string denoting the requirements field in the database.
 	FieldRequirements = "requirements"
 	// FieldResponsibilities holds the string denoting the responsibilities field in the database.
@@ -61,7 +61,7 @@ var Columns = []string{
 	FieldMinSalary,
 	FieldMaxSalary,
 	FieldSalaryUnit,
-	FieldType,
+	FieldEmploymentType,
 	FieldRequirements,
 	FieldResponsibilities,
 	FieldBenefits,
@@ -139,32 +139,32 @@ func SalaryUnitValidator(su SalaryUnit) error {
 	}
 }
 
-// Type defines the type for the "type" enum field.
-type Type string
+// EmploymentType defines the type for the "employment_type" enum field.
+type EmploymentType string
 
-// TypeFulltime is the default value of the Type enum.
-const DefaultType = TypeFulltime
+// EmploymentTypeFulltime is the default value of the EmploymentType enum.
+const DefaultEmploymentType = EmploymentTypeFulltime
 
-// Type values.
+// EmploymentType values.
 const (
-	TypeFulltime  Type = "fulltime"
-	TypeParttime  Type = "parttime"
-	TypeContract  Type = "contract"
-	TypeIntern    Type = "intern"
-	TypeFreelance Type = "freelance"
-	TypeOther     Type = "other"
+	EmploymentTypeFulltime  EmploymentType = "fulltime"
+	EmploymentTypeParttime  EmploymentType = "parttime"
+	EmploymentTypeContract  EmploymentType = "contract"
+	EmploymentTypeIntern    EmploymentType = "intern"
+	EmploymentTypeFreelance EmploymentType = "freelance"
+	EmploymentTypeOther     EmploymentType = "other"
 )
 
-func (_type Type) String() string {
-	return string(_type)
+func (et EmploymentType) String() string {
+	return string(et)
 }
 
-// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
-func TypeValidator(_type Type) error {
-	switch _type {
-	case TypeFulltime, TypeParttime, TypeContract, TypeIntern, TypeFreelance, TypeOther:
+// EmploymentTypeValidator is a validator for the "employment_type" field enum values. It is called by the builders before save.
+func EmploymentTypeValidator(et EmploymentType) error {
+	switch et {
+	case EmploymentTypeFulltime, EmploymentTypeParttime, EmploymentTypeContract, EmploymentTypeIntern, EmploymentTypeFreelance, EmploymentTypeOther:
 		return nil
 	default:
-		return fmt.Errorf("job: invalid enum value for type field: %q", _type)
+		return fmt.Errorf("job: invalid enum value for employment_type field: %q", et)
 	}
 }
